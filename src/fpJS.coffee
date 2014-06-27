@@ -39,30 +39,43 @@ fpJS = do ->
   collections = {
     seq: {
       Seq: class Seq  extends Monad
+        #toStrig method
         toString: -> "Seq(#{@foldRight("") (item, acc) -> if acc is "" then item else "#{item}, #{acc}"})"
-        @apply: (items...) -> if items.length is 0 then new Nil
+        
+        #Sugar method for creating sequences easily
+        @apply: (items...) -> if items.length is 0 then new Nil 
         else (new Cons items[0], Seq.apply.apply this, items.slice 1)
-
+        
+        #Haskell : function or Scala :: method
         append: (el) -> new Cons el, @
-
-        reverse: -> @foldLeft(Seq.apply()) (acc, item) -> new Cons item, acc
-
-        foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc
-        else (@tail.foldLeft fn acc, @head) fn
-
+        
+        #Method for reverse the sequence
+        reverse: -> @foldLeft(Seq.apply()) (acc, item) -> acc.append item
+        
+        #Method for folding the sequence in the left side
+        foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc else (@tail.foldLeft fn acc, @head) fn
+        
+        #Method for folding the sequence in the right side
         foldRight: (ac) -> (fn) => @reverse().foldLeft(ac) (acc, item) -> fn item, acc
-
+        
+        #Haskell and Scala ++ function
         concat: (list) ->
           helper = (l1) -> (l2) -> if l2 instanceof Nil then l1
           else if l1 instanceof Nil then l2
           else (helper l1.append l2.head) l2.tail
     
           (helper list) @reverse()
-  
-        fmap: (fn) -> @foldRight(Seq.apply()) (item, acc) -> new Cons (fn item), acc
-
+        
+        #Method for filtering the sequence
+        filter: (p) -> @foldLeft(Seq.apply()) (acc, item) -> if p item then acc.append item else acc
+        
+        #Method for transforming the sequence of type A in a sequence in type B
+        fmap: (fn) -> @foldRight(Seq.apply()) (item, acc) -> acc.append fn item
+        
+        #Haskell <*> function for mapping a sequence of functions and a sequence of simple data
         afmap: (listfn) -> listfn.bind (f) => @fmap f
-
+        
+        #Haskell >>= or Scala flatMap
         bind: (fn) -> if @ instanceof Nil then @ else @tail.bind(fn).concat(fn @head)
 
       Cons: class Cons extends Seq
