@@ -114,17 +114,21 @@ fpJS = do ->
       class Try extends Monad
         constructor: -> throw new Error "No direct constructor"
         @apply: (fn) -> try new Success fn() catch e then new Failure e
+
       class Success extends Try
         constructor: (@value) ->
-        bind: (f) -> try f(@value) catch e then new Failure e
-        fmap: (fn) -> Try.apply fn @value
+        bind: (f) -> try f @value catch e then new Failure e
+        fmap: (fn) -> Try.apply => fn @value
         getOrElse: (v) -> @value
+        toString: -> "Success(#{@value})"
 
       class Failure extends Try
         constructor: (@exception) ->
         bind: (f) -> @
         fmap: (fn) -> @
         getOrElse: (v) -> v
+        toString: -> "Failure(#{@exception})"
+      {Try, Success, Failure}
 
     {either, try_}
   {typeclasses, maybe, collections, utils}
