@@ -25,7 +25,7 @@ fpJS = do ->
  
       bind: (fn) -> if @ instanceof Nothing then @ else fn @v
 
-      getOrElse: (v) -> if @ instanceof Nothing then v else @v
+      getOrElse: (v) -> if @ instanceof Nothing then v else @v()
 
     class Just extends Maybe
       constructor: (@v) ->
@@ -58,8 +58,7 @@ fpJS = do ->
         reverse: -> @foldLeft(Seq.apply()) (acc, item) -> acc.append item
 
         #Method for folding the sequence in the left side
-        foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc
-        else (@tail.foldLeft fn acc, @head) fn
+        foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc else (@tail.foldLeft fn acc, @head) fn
 
         #Method for folding the sequence in the right side
         foldRight: (ac) -> (fn) => @reverse().foldLeft(ac) (acc, item) -> fn item, acc
@@ -104,8 +103,15 @@ fpJS = do ->
       class Either
         constructor: -> throw new Error "No direct constructor"
         fold: (rfn, lfn) -> if @ instanceof Right then rfn @value else lfn @value
-      class Right extends Either then constructor: (@value) ->
-      class Left extends Either then constructor: (@value) ->
+        
+      class Right extends Either 
+        constructor: (@value) ->
+        toString: -> "Right(#{@value})"
+
+      class Left extends Either
+        constructor: (@value) ->
+        toString: -> "Left(#{@value})"
+
       {Either, Right, Left}
     
     try_ = do ->
@@ -126,7 +132,7 @@ fpJS = do ->
         constructor: (@exception) ->
         bind: (f) -> @
         fmap: (fn) -> @
-        getOrElse: (v) -> v
+        getOrElse: (v) -> v()
         toString: -> "Failure(#{@exception})"
       {Try, Success, Failure}
 
