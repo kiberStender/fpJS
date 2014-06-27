@@ -1,14 +1,14 @@
 fpJS = do ->
   typeclasses = {
-    Functor: (class Functor
+    Functor: class Functor
       constructor: -> throw new Error "No direct constructor"
-      fmap: (fn) -> throw new Error "No implementation")
+      fmap: (fn) -> throw new Error "No implementation"
 
-    Applicative: (class Applicative extends Functor
-      afmap: (fn) -> throw new Error "No implementation")
+    Applicative: class Applicative extends Functor
+      afmap: (fn) -> throw new Error "No implementation"
 
-    Monad: (class Monad extends Applicative
-      bind: (fn) -> throw new Error "No implementation")
+    Monad: class Monad extends Applicative
+      bind: (fn) -> throw new Error "No implementation"
   }
 
   maybe = {
