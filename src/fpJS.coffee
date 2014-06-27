@@ -1,13 +1,17 @@
 fpJS = do ->
+  #Set of abstract classes- JS has no abstract class itself so throw error in constructor
+  #is the way I found to ignore this detail
   typeclasses = {
     Functor: class Functor
       constructor: -> throw new Error "No direct constructor"
       fmap: (fn) -> throw new Error "No implementation"
 
     Applicative: class Applicative extends Functor
+      #Haskell <*> function
       afmap: (fn) -> throw new Error "No implementation"
 
     Monad: class Monad extends Applicative
+      #Haskell >>= function
       bind: (fn) -> throw new Error "No implementation"
   }
 
