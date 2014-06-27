@@ -35,7 +35,7 @@ fpJS = do ->
   collections = {
     seq: {
       Seq: class Seq  extends Monad
-        toString: -> "Seq(#{@foldRight("") (acc, item) -> if acc is "" then item else "#{acc}, #{item}"})"
+        toString: -> "Seq(#{@foldRight("") (item, acc) -> if acc is "" then item else "#{item}, #{acc}"})"
         @apply: (items...) -> if items.length is 0 then new Nil
         else (new Cons items[0], Seq.apply.apply this, items.slice 1)
 
