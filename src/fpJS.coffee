@@ -15,8 +15,8 @@ fpJS = do ->
       bind: (fn) -> throw new Error "No implementation"
     {Functor, Applicative, Monad}
 
-  maybe = do (tpclasses = typeclasses) ->
-    {Monad} = tpclasses
+  maybe = do ->
+    {Monad} = typeclasses
 
     class Maybe extends Monad
       fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @v
@@ -58,7 +58,8 @@ fpJS = do ->
         reverse: -> @foldLeft(Seq.apply()) (acc, item) -> acc.append item
 
         #Method for folding the sequence in the left side
-        foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc else (@tail.foldLeft fn acc, @head) fn
+        foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc
+        else (@tail.foldLeft fn acc, @head) fn
 
         #Method for folding the sequence in the right side
         foldRight: (ac) -> (fn) => @reverse().foldLeft(ac) (acc, item) -> fn item, acc
@@ -73,7 +74,7 @@ fpJS = do ->
   
         #Method for filtering the sequence
         filter: (p) -> @foldLeft(Seq.apply()) (acc, item) -> if p item then acc.append item else acc
-        
+
         #Method for findind an item inside de sequence
         find: (p) -> if @ instanceof Nil then new Nothing else if p @head then new Just @head else @tail.find p
 
@@ -97,4 +98,33 @@ fpJS = do ->
         headOps: -> new Nothing
       {Seq, Cons, Nil}
     {seq}
-  {typeclasses, maybe, collections}
+
+  utils = do ->
+    either = do ->
+      class Either
+        constructor: -> throw new Error "No direct constructor"
+        fold: (rfn, lfn) -> if @ instanceof Right then rfn @value else lfn @value
+      class Right extends Either then constructor: (@value) ->
+      class Left extends Either then constructor: (@value) ->
+      {Either, Right, Left}
+    
+    try_ = do ->
+      {Monad} = typeclasses
+
+      class Try extends Monad
+        constructor: -> throw new Error "No direct constructor"
+        @apply: (fn) -> try new Success fn() catch e then new Failure e
+      class Success extends Try
+        constructor: (@value) ->
+        bind: (f) -> try f(@value) catch e then new Failure e
+        fmap: (fn) -> Try.apply fn @value
+        getOrElse: (v) -> @value
+
+      class Failure extends Try
+        constructor: (@exception) ->
+        bind: (f) -> @
+        fmap: (fn) -> @
+        getOrElse: (v) -> v
+
+    {either, try_}
+  {typeclasses, maybe, collections, utils}
