@@ -1,0 +1,16 @@
+{
+  "name"          : "fpJS",
+  "version"       : "0.0.1",
+  "description"   : "Functional object orient lib scala/haskell like",
+  "url"           : "https://github.com/kiberStender/fpJS.git",
+  "author"        : "Kleber Stender <kleber.stender@gmail.com>",
+  "devDependencies": {
+    "mocha": "1.17.1 ",
+    "chai": "1.9.0",
+    "sinon": "1.8.2",
+    "coffee-script": "1.7.1"
+  },
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee-script/register -R spec"
+  }
+}
