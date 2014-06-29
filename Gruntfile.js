@@ -33,7 +33,7 @@ module.exports = function(grunt){
             build: {
                 options: {
                     mangle: false,
-                    banner: '/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+                    banner: '/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd HH:MM:ss") %> */\n'
                 },
                 files: {
                         'build/<%= pkg.name %>_<%= pkg.version %>.min.js': ['build/<%= pkg.name %>.js']
