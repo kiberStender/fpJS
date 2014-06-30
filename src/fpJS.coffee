@@ -78,6 +78,8 @@ fpJS = do ->
 
     #Haskell >>= or Scala flatMap
     bind: (fn) -> if @ instanceof Nil then @ else @tail.bind(fn).concat(fn @head)
+    
+  seq = Seq.apply
 
   class Cons extends Seq
     constructor: (@head, @tail) ->
@@ -135,7 +137,7 @@ fpJS = do ->
     #maybe
     Just, nothing, 
     #collections.seq
-    Seq, Cons, nil, 
+    seq, Cons, nil, 
     #utils.either
     Either, Right, Left,
     #utils.try_
