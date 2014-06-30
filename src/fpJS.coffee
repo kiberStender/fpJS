@@ -82,7 +82,7 @@ fpJS = do ->
     length: -> 1 + @tail.length()
     headOps: -> new Just @head
     equals: (x) -> if x instanceof Cons
-      if typeof @head isnt "object" and typeof x isnt "object"
+      if typeof @head isnt "object" and typeof x.head isnt "object" #x is a Cons instance, it should test head not x itself
         if @head is x.head
           if @tail instanceof Nil then true else @tail.equals x.tails
         else false
