@@ -35,12 +35,14 @@ fpJS = do ->
     get: -> throw new Error "Nothing.get"
     equals: (x) -> x instanceof Nothing
     
+  nothing = new Nothing()
+    
   class Seq  extends Monad
     #toStrig method
     toString: -> "Seq(#{@foldRight("") (item, acc) -> if acc is "" then item else "#{item}, #{acc}"})"
 
     #Sugar method for creating sequences easily
-    @apply: (items...) -> if items.length is 0 then new Nil else (new Cons items[0], Seq.apply.apply @, items.slice 1)
+    @apply: (items...) -> if items.length is 0 then nil else (new Cons items[0], Seq.apply.apply @, items.slice 1)
 
     #Haskell : function or Scala :: method
     append: (el) -> new Cons el, @
@@ -49,7 +51,7 @@ fpJS = do ->
     reverse: -> @foldLeft(Seq.apply()) (acc, item) -> acc.append item
 
     #Method for folding the sequence in the left side
-    foldLeft: (acc) -> (fn) => if @ instanceof Nil() then acc else (@tail.foldLeft fn acc, @head) fn
+    foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc else (@tail.foldLeft fn acc, @head) fn
 
     #Method for folding the sequence in the right side
     foldRight: (ac) -> (fn) => @reverse().foldLeft(ac) (acc, item) -> fn item, acc
@@ -66,7 +68,7 @@ fpJS = do ->
     filter: (p) -> @foldLeft(Seq.apply()) (acc, item) -> if p item then acc.append item else acc
 
     #Method for findind an item inside de sequence
-    find: (p) -> if @ instanceof Nil then new Nothing() else if p @head then new Just @head else @tail.find p
+    find: (p) -> if @ instanceof Nil then nothing else if p @head then new Just @head else @tail.find p
 
     #Method for transforming the sequence of type A in a sequence in type B
     fmap: (fn) -> @foldRight(Seq.apply()) (item, acc) -> acc.append fn item
@@ -94,6 +96,8 @@ fpJS = do ->
     length: -> 0
     headOps: -> new Nothing()
     equals: (x) -> x instanceof Nil
+    
+  nil = new Nil()
     
   class Either
     constructor: -> throw new Error "No direct constructor"
@@ -129,9 +133,9 @@ fpJS = do ->
     #typeclases
     Functor, Applicative, Monad, 
     #maybe
-    Maybe, Just, Nothing, 
+    Just, nothing, 
     #collections.seq
-    Seq, Cons, Nil, 
+    Seq, Cons, nil, 
     #utils.either
     Either, Right, Left,
     #utils.try_
