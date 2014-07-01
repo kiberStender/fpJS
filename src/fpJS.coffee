@@ -29,13 +29,11 @@ fpJS = do ->
       else if typeof @v is "object" and typeof x is "object" and x.equals then x.equals @v else false
     else false
 
-  class Nothing extends Maybe
+  nothing = new class Nothing extends Maybe
     constructor: ->
     toString: -> "Nothing"
     get: -> throw new Error "Nothing.get"
     equals: (x) -> x instanceof Nothing
-    
-  nothing = new Nothing()
     
   class Seq  extends Monad
     #toStrig method
@@ -93,13 +91,11 @@ fpJS = do ->
       else if typeof @head is "object" and typeof x is "object" and x.equals then x.equals @head else false
     else false
 
-  class Nil extends Seq
+  nil = new class Nil extends Seq
     constructor: ->
     length: -> 0
     headOps: -> new Nothing()
     equals: (x) -> x instanceof Nil
-    
-  nil = new Nil()
     
   class Either
     constructor: -> throw new Error "No direct constructor"
