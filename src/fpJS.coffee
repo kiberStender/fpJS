@@ -1,7 +1,12 @@
 fpJS = do ->
   #Set of abstract classes- JS has no abstract class itself so throw error in constructor is the way I found to ignore this detail
-  class Functor
+  class Any
     constructor: -> throw new Error "No direct constructor"
+    toString: -> "#{@}"
+    hashCode: -> 13
+    equals: (x) -> x instanceof Any and @hashCode() is x.hashCode()
+
+  class Functor extends Any
     #method to map the internal data of type A into a data of type B
     fmap: (fn) -> throw new Error "No implementation"
 
@@ -97,8 +102,7 @@ fpJS = do ->
     headOps: -> new Nothing()
     equals: (x) -> x instanceof Nil
     
-  class Either
-    constructor: -> throw new Error "No direct constructor"
+  class Either extends Any 
     fold: (rfn, lfn) -> if @ instanceof Right then rfn @value else lfn @value
 
   class Right extends Either 
@@ -110,7 +114,6 @@ fpJS = do ->
     toString: -> "Left(#{@value})"    
 
   class Try extends Monad
-    constructor: -> throw new Error "No direct constructor"
     @apply: (fn) -> try new Success fn() catch e then new Failure e
 
   class Success extends Try
@@ -135,7 +138,7 @@ fpJS = do ->
     #collections.seq
     seq, Cons, nil, 
     #utils.either
-    Either, Right, Left,
+    Right, Left,
     #utils.try_
     Try, Success, Failure
   }
