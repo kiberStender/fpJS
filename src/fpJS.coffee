@@ -111,6 +111,11 @@ fpJS = do ->
     headOps: -> nothing
     equals: (x) -> x instanceof Nil
     
+  #Range
+  class Range extends Any
+    constructor: (@start, @end, @step = 1) ->
+    to: -> if @start >= @end then nil else new Cons @start, (new Range (@start+@step), @end, @step).to()
+    
   class Either extends Any 
     fold: (rfn, lfn) -> if @ instanceof Right then rfn @value else lfn @value
 
@@ -144,13 +149,15 @@ fpJS = do ->
 
   {
     #typeclases
-    Functor, Applicative, Monad,
+    Functor, Applicative, Monad
     #maybe
-    Just, nothing,
+    Just, nothing
     #collections.seq
-    seq, Cons, nil,
+    seq, Cons, nil
+    #collections.range
+    Range
     #utils.either
-    Right, Left,
+    Right, Left
     #utils.try_
     _try, Success, Failure
   }
