@@ -119,11 +119,14 @@ fpJS = do ->
 
   class Try extends Monad
     @apply: (fn) -> try new Success fn() catch e then new Failure e
+    
+  #syntax sugar for Try.apply
+  _try = Try.apply
 
   class Success extends Try
     constructor: (@value) ->
     bind: (f) -> try f @value catch e then new Failure e
-    fmap: (fn) -> Try.apply => fn @value
+    fmap: (fn) -> _try => fn @value
     getOrElse: (v) -> @value
     toString: -> "Success(#{@value})"
 
@@ -144,5 +147,5 @@ fpJS = do ->
     #utils.either
     Right, Left,
     #utils.try_
-    Try, Success, Failure
+    _try, Success, Failure
   }
