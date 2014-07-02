@@ -72,6 +72,11 @@ fpJS = do ->
 
     #Method for findind an item inside de sequence
     find: (p) -> if @ instanceof Nil then nothing else if p @head then new Just @head else @tail.find p
+    
+    #Method that transforms a Seq of Seq's in a single Seq
+    flatten: ->  if @head instanceof Seq
+      (@foldLeft seq()) (acc, item) -> acc.concat item 
+    else @
 
     #Method for transforming the sequence of type A in a sequence in type B
     fmap: (fn) -> @foldRight(seq()) (item, acc) -> acc.append fn item
@@ -80,7 +85,7 @@ fpJS = do ->
     afmap: (listfn) -> listfn.bind (f) => @fmap f
 
     #Haskell >>= or Scala flatMap
-    bind: (fn) -> if @ instanceof Nil then @ else @tail.bind(fn).concat(fn @head)
+    bind: (fn) -> (@fmap fn).flatten()
     
   seq = Seq.apply
 
