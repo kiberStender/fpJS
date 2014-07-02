@@ -91,7 +91,9 @@ fpJS = do ->
     equals: (x) -> if x instanceof Cons
       if typeof @head isnt "object" and typeof x.head isnt "object" #x is a Cons instance, it should test head not x itself
         if @head is x.head
-          if @tail instanceof Nil then true else @tail.equals x.tails
+          if @tail instanceof Nil and x.tail instanceof Nil then true 
+          else if @tail instanceof Cons and x.tail instanceof Cons then @tail.equals x.tail
+          else false
         else false
       else if typeof @head is "object" and typeof x is "object" and x.equals then x.equals @head else false
     else false
