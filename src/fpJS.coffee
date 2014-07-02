@@ -161,3 +161,6 @@ fpJS = do ->
     #utils.try_
     _try, Success, Failure
   }
+
+root = exports ? window
+root.fpJS = fpJS
