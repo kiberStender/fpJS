@@ -51,7 +51,7 @@ fpJS = do ->
     append: (el) -> new Cons el, @
 
     #Method for reverse the sequence
-    reverse: -> @foldLeft(Seq.apply()) (acc, item) -> acc.append item
+    reverse: -> @foldLeft(seq()) (acc, item) -> acc.append item
 
     #Method for folding the sequence in the left side
     foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc else (@tail.foldLeft fn acc, @head) fn
@@ -68,13 +68,13 @@ fpJS = do ->
       (helper list) @reverse()
 
     #Method for filtering the sequence
-    filter: (p) -> @foldLeft(Seq.apply()) (acc, item) -> if p item then acc.append item else acc
+    filter: (p) -> @foldLeft(seq()) (acc, item) -> if p item then acc.append item else acc
 
     #Method for findind an item inside de sequence
     find: (p) -> if @ instanceof Nil then nothing else if p @head then new Just @head else @tail.find p
 
     #Method for transforming the sequence of type A in a sequence in type B
-    fmap: (fn) -> @foldRight(Seq.apply()) (item, acc) -> acc.append fn item
+    fmap: (fn) -> @foldRight(seq()) (item, acc) -> acc.append fn item
 
     #Haskell <*> function for mapping a sequence of functions and a sequence of simple data
     afmap: (listfn) -> listfn.bind (f) => @fmap f
@@ -95,13 +95,15 @@ fpJS = do ->
           else if @tail instanceof Cons and x.tail instanceof Cons then @tail.equals x.tail
           else false
         else false
-      else if typeof @head is "object" and typeof x is "object" and x.equals then x.equals @head else false
+      else if typeof @head is "object" and typeof x is "object" and x.equals
+        x.equals @head 
+      else false
     else false
 
   nil = new class Nil extends Seq
     constructor: ->
     length: -> 0
-    headOps: -> new Nothing()
+    headOps: -> nothing
     equals: (x) -> x instanceof Nil
     
   class Either extends Any 
@@ -134,16 +136,13 @@ fpJS = do ->
 
   {
     #typeclases
-    Functor, Applicative, Monad, 
+    Functor, Applicative, Monad,
     #maybe
-    Just, nothing, 
+    Just, nothing,
     #collections.seq
-    seq, Cons, nil, 
+    seq, Cons, nil,
     #utils.either
     Right, Left,
     #utils.try_
     Try, Success, Failure
   }
-  
-root = exports ? window
-root.fpJS = fpJS
