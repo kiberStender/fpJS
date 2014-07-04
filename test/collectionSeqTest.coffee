@@ -5,6 +5,7 @@ chai.should()
 
 describe "Seq instances", ->
   s = seq 1, 2, 3
+  bindMaybe = (s) -> s.find((x) -> x is 1).bind (one) -> s.find((x) -> x is 2).bind (two) -> s.find((x) -> x > 4).fmap (gt4) -> one + two + gt4
   fx = (x) -> x * 2
   fxx = (x) -> seq x * 2
   sfx = seq ((x) -> x + 1), ((x) -> x * 2)
@@ -20,3 +21,8 @@ describe "Seq instances", ->
   it "Seq(1, 2, 3) should fmap fxx to Seq(Seq(2), Seq(4), Seq(6))", -> chai.expect(s.fmap(fxx).equals seq (seq 2), (seq 4), (seq 6)).to.be.true
   it "Seq(1, 2, 3) should bind fxx to Seq(2, 4, 6)", -> chai.expect(s.bind(fxx).equals seq 2, 4, 6).to.be.true
   it "Seq(1, 2, 3) should afmap sfx to Seq(2, 3, 4, 2, 4, 6)", -> chai.expect(s.afmap(sfx).equals sfxr()).to.be.true
+  it "bindMaybe(Seq(1, 2, 3, 4, 5)).get() shoud be 8", -> bindMaybe(seq 1, 2, 3, 4, 5).get().should.equal 8
+  it "Seq(1, 2, 3) should filter to 1", -> chai.expect(s.filter((x) -> x < 2).equals seq 1).to.be.true
+  it "Seq(1, 2, 3) should concat to Seq(1, 2, 3, 1, 2, 3)", -> chai.expect(s.concat(s).equals seq 1, 2, 3, 1, 2, 3).to.be.true
+  it "Seq(1, 2, 3) should foldLeft + to 6", -> ((s.foldLeft 0) (acc, x) -> acc + x).should.equal 6
+  it "Seq(1, 2, 3) should be reversed to Seq(3, 2, 1)", -> chai.expect(s.reverse().equals seq 3, 2, 1).to.be.true
