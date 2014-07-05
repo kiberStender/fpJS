@@ -88,6 +88,17 @@ fpJS = do ->
     bind: (fn) -> (@fmap fn).flatten()
     
   seq = Seq.apply
+  arrayToSeq = (arr) -> if arr instanceof Array
+    helper =  (head) -> (tail) -> if head instanceof Array
+      (helper head[0]) head.slice 1
+    else if tail.length is 0 then seq head
+    else ((helper tail[0]) tail.slice 1).append head
+      
+    if arr.length is 0 then seq()
+    else
+      if arr[0] instanceof Array then (arrayToSeq arr.slice 1).append (helper arr[0][0]) arr[0].slice 1
+      else (arrayToSeq arr.slice 1).append arr[0]
+  else throw new Error "Not an Array"
 
   class Cons extends Seq
     constructor: (@head, @tail) ->
@@ -153,7 +164,7 @@ fpJS = do ->
     #maybe
     Just, nothing
     #collections.seq
-    seq, Cons, nil
+    seq, Cons, nil, arrayToSeq
     #collections.range
     Range
     #utils.either
