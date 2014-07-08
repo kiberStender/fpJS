@@ -88,6 +88,7 @@ fpJS = do ->
     bind: (fn) -> (@fmap fn).flatten()
     
   seq = Seq.apply
+  
   arrayToSeq = (arr) -> if arr instanceof Array
     helper =  (head) -> (tail) -> if head instanceof Array
       (helper head[0]) head.slice 1
@@ -121,6 +122,13 @@ fpJS = do ->
     length: -> 0
     headOps: -> nothing
     equals: (x) -> x instanceof Nil
+    
+  #seq.Tree
+  class Tree extends Any
+
+  class EmptyBranch extends Tree then constructor: ->
+
+  class Branch extends Tree then constructor: (@left, @value, @right) ->
     
   #Range
   class Range extends Any
