@@ -126,9 +126,17 @@ fpJS = do ->
   #seq.Tree
   class Tree extends Any
 
-  class EmptyBranch extends Tree then constructor: ->
+  emptyBranch = new class EmptyBranch extends Tree
+    constructor: ->
+    toString: -> ""
+    include: (x) -> (f) -> new Branch emptyBranch, x, emptyBranch
 
-  class Branch extends Tree then constructor: (@left, @value, @right) ->
+  class Branch extends Tree
+    constructor: (@left, @value, @right) ->
+    toString: -> "{#{@left} #{@value} #{@right}}"
+    include: (x) -> (f) => if (f x, @value) < 0 then new Branch ((@left.include x) f), @value, @right
+    else if (f x, @value) > 0 then new Branch @left, @value, (@right.include x) f
+    else @
     
   #Range
   class Range extends Any
@@ -173,6 +181,8 @@ fpJS = do ->
     Just, nothing
     #collections.seq
     seq, Cons, nil, arrayToSeq
+    #collections.tree
+    emptyBranch, Branch
     #collections.range
     Range
     #utils.either
