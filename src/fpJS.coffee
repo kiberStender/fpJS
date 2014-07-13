@@ -1,10 +1,30 @@
 fpJS = do ->
+  #Adding Ordering to all objects and instances of native JS
+  Object::equals = (o) -> @toString() is o.toString()
+  Object::compare = (x) -> throw new Error "No implementation"
+  Object::lessThan = (x) -> (@compare x) is -1
+  Object::greaterThan = (x) -> (@compare x) is 1
+  
+  #Adding Ordering to Native JS objects
+  Number::compare = (x) -> if typeof x is "number"
+    if (@ + 0) is x then 0 else if (@ + 0) < x then -1 else 1
+  else -2
+  
+  String::compare = (s) -> if typeof s is "string" 
+    if (@ + "").length is s.length then 0 else if (@ + "").length < s.length then -1 else 1
+  else -2
+  
   #Set of abstract classes- JS has no abstract class itself so throw error in constructor is the way I found to ignore this detail
   class Any
     constructor: -> throw new Error "No direct constructor"
     toString: -> "#{@}"
     hashCode: -> 13
     equals: (x) -> x instanceof Any and @hashCode() is x.hashCode()
+    
+  class Ordering extends Any
+    compare: (x) -> throw new Error "No implementation"
+    lessThan: (x) -> (@compare x) is -1
+    greaterThan: (x) -> (@compare x) is 1
 
   class Functor extends Any
     #method to map the internal data of type A into a data of type B
