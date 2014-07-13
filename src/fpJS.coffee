@@ -149,15 +149,23 @@ fpJS = do ->
   emptyBranch = new class EmptyBranch extends Tree
     constructor: ->
     toString: -> ""
-    include: (x) -> (f) -> new Branch emptyBranch, x, emptyBranch
+    equals: (t) -> t instanceof EmptyBranch
+    include: (x) -> new Branch emptyBranch, x, emptyBranch
 
   class Branch extends Tree
     constructor: (@left, @value, @right) ->
     toString: -> "{#{@left} #{@value} #{@right}}"
-    include: (x) -> (f) => if (f x, @value) < 0 then new Branch ((@left.include x) f), @value, @right
-    else if (f x, @value) > 0 then new Branch @left, @value, (@right.include x) f
-    else @
     
+    equals: (t) -> if t instanceof Branch
+      if @value.equals t.value then (@left.equals t.left) && (@right.equals t.right) else false
+    else false
+    
+    include: (x) -> switch @value.compare x
+      when 1 then new Branch (@left.include x), @value, @right
+      when 0 then @
+      when -1 then new Branch @left, @value,  @right.include x
+      when -2 then new Error "Type constraint problem. X[#{typeof x}] different from value[#{typeof @value}]"
+      
   #Range
   class Range extends Any
     constructor: (@start, @end, @step = 1) ->
