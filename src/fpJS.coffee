@@ -36,12 +36,12 @@ fpJS = do ->
 
   class Monad extends Applicative
     #Haskell >>= function
-    bind: (fn) -> throw new Error "No implementation"
+    flatMap: (fn) -> throw new Error "No implementation"
 
   class Maybe extends Monad
     fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @v
     afmap: (some) -> if some instanceof Nothing then @ else @fmap some.v
-    bind: (fn) -> if @ instanceof Nothing then @ else fn @v
+    flatMap: (fn) -> if @ instanceof Nothing then @ else fn @v
     getOrElse: (v) -> if @ instanceof Nothing then v() else @v
 
   class Just extends Maybe
@@ -102,10 +102,10 @@ fpJS = do ->
     fmap: (fn) -> @foldRight(seq()) (item, acc) -> acc.append fn item
 
     #Haskell <*> function for mapping a sequence of functions and a sequence of simple data
-    afmap: (listfn) -> listfn.bind (f) => @fmap f
+    afmap: (listfn) -> listfn.flatMap (f) => @fmap f
 
     #Haskell >>= or Scala flatMap
-    bind: (fn) -> (@fmap fn).flatten()
+    flatMap: (fn) -> (@fmap fn).flatten()
     
   seq = Seq.apply
   
@@ -182,17 +182,17 @@ fpJS = do ->
 
   class Success extends Try
     constructor: (@value) ->
-    bind: (f) -> try f @value catch e then new Failure e
+    flatMap: (f) -> try f @value catch e then new Failure e
     fmap: (fn) -> _try => fn @value
     getOrElse: (v) -> @value
     toString: -> "Success(#{@value})"
 
   class Failure extends Try
     constructor: (@exception) ->
-    bind: (f) -> @
+    flatMap: (f) -> @
     fmap: (fn) -> @
     getOrElse: (v) -> v()
-    toString: -> "Failure(#{@exception})"
+    toString: -> "Failure(#{@exception})"   
 
   {
     #typeclases
