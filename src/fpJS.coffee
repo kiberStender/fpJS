@@ -192,7 +192,23 @@ fpJS = do ->
     flatMap: (f) -> @
     fmap: (fn) -> @
     getOrElse: (v) -> v()
-    toString: -> "Failure(#{@exception})"   
+    toString: -> "Failure(#{@exception})"
+    
+  class State extends Monad
+    constructor: (@run) ->
+    fmap: (f) -> new State (s) =>
+      [a, t] = @run s
+      [(f a), t]
+
+    flatMap: (f) -> new State (s) =>
+      [a, t] = @run s
+      (f a).run t
+
+    evaluate: (s) -> @run(s)[0]
+
+    @insert: (a) -> new State (s) -> [a, s]
+    @get: (f) -> new State (s) -> [(f s), s]
+    @mod: (f) -> new State (s) -> [[], f s]
 
   {
     #typeclases
@@ -209,6 +225,7 @@ fpJS = do ->
     Right, Left
     #utils.try_
     _try, Success, Failure
+    State
   }
 
 root = exports ? window
