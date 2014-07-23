@@ -65,6 +65,7 @@ fpJS = do ->
     equals: (x) -> x instanceof Nothing
 
   class Iterable extends Monad
+    length: -> @foldLeft(0) (acc, item) -> acc + item
     concat: (i) -> throw Error "Not implemented yet!!!"
     
     #Method for folding the sequence in the left side
@@ -89,12 +90,19 @@ fpJS = do ->
 
     append: (x) -> new KVMap x, @
     reverse: -> @foldLeft(map()) (acc, item) -> acc.append item
+    filter: (p) -> @foldLeft(map()) (acc, item) -> if p item then acc.append item else acc
+    
+    get: (k) -> 
+      tmp = @filter (x) -> x[0] is k
+      if tmp.length() is 0 then nothing else new Just tmp.head[1]
+
+    getV: (k) -> (@get k).getOrElse -> throw Error "No such element"
     
   class KVMap extends Map then constructor: (@head, @tail) ->
-  class EmptyMap extends Map then constructor: ->
 
-  map = (items...) -> if items.length is 0 then new EmptyMap()
-  else new KVMap items[0], map.apply @, items.slice 1
+  emptyMap = new class EmptyMap extends Map then constructor: ->
+
+  map = (items...) -> if items.length is 0 then emptyMap else new KVMap items[0], map.apply @, items.slice 1
     
   class Seq  extends Iterable
     #toStrig method
@@ -119,7 +127,7 @@ fpJS = do ->
     #Method for filtering the sequence
     filter: (p) -> @foldLeft(seq()) (acc, item) -> if p item then acc.append item else acc
 
-    #Method for findind an item inside de sequence
+    #Method for finding an item inside de sequence
     find: (p) -> if @ instanceof Nil then nothing else if p @head then new Just @head else @tail.find p
     
     #Method that transforms a Seq of Seq's in a single Seq
@@ -151,7 +159,6 @@ fpJS = do ->
 
   class Cons extends Seq
     constructor: (@head, @tail) ->
-    length: -> 1 + @tail.length()
     headOps: -> new Just @head
     equals: (x) -> if x instanceof Cons
       if @head.equals x.head then @tail.equals x.tail else false
@@ -159,7 +166,6 @@ fpJS = do ->
 
   nil = new class Nil extends Seq
     constructor: ->
-    length: -> 0
     headOps: -> nothing
     equals: (x) -> x instanceof Nil
     
