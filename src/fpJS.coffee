@@ -28,26 +28,29 @@ fpJS = do ->
 
   class Functor extends Any
     #method to map the internal data of type A into a data of type B
-    fmap: (fn) -> throw new Error "No implementation"
+    fmap: (fn) -> throw Error "No implementation"
 
-  class Applicative extends Functor
+  class Joinable extends Functor
+    join: -> throw Error "No implementation"
+
+  class Applicative extends Joinable
     #Haskell <*> function
     afmap: (fn) -> throw new Error "No implementation"
 
   class Monad extends Applicative
     #Haskell >>= function
-    flatMap: (fn) -> throw new Error "No implementation"
+    flatMap: (fn) -> @fmap(fn).join()
 
   class Maybe extends Monad
     fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @v
     afmap: (some) -> if some instanceof Nothing then @ else @fmap some.v
-    flatMap: (fn) -> if @ instanceof Nothing then @ else fn @v
     getOrElse: (v) -> if @ instanceof Nothing then v() else @v
 
   class Just extends Maybe
     constructor: (@v) ->
     toString: -> "Just(#{@v})"
     get: -> @v
+    join: -> @get()
     equals: (x) -> if x instanceof Just
       if typeof @v isnt "object" and typeof v isnt "object"
         @v is x.v
@@ -58,26 +61,52 @@ fpJS = do ->
     constructor: ->
     toString: -> "Nothing"
     get: -> throw new Error "Nothing.get"
+    join: -> @
     equals: (x) -> x instanceof Nothing
+
+  class Iterable extends Monad
+    concat: (i) -> throw Error "Not implemented yet!!!"
     
-  class Seq  extends Monad
+    #Method for folding the sequence in the left side
+    foldLeft: (acc) -> (f) -> throw Error "Not implemented yet!!!"
+
+    #Method for folding the sequence in the right side
+    foldRight: (ac) -> (fn) => @reverse().foldLeft(ac) (acc, item) -> fn item, acc
+    
+    #Method for reverse the sequence
+    reverse: -> throw Error "Not implemented yet!!!"
+
+    #Method for filtering the sequence
+    filter: (p) -> throw Error "Not implemented yet!!!"
+
+  class Map extends Iterable
+    toString: -> "Map(#{@foldRight("") (item, acc) ->
+      [k, v] = item
+      if acc is "" then "#{k} -> #{v}" else "#{acc}, #{k} -> #{v}"
+    })"
+
+    foldLeft: (acc) -> (fn) => if @ instanceof EmptyMap then acc else (@tail.foldLeft fn acc, @head) fn
+
+    append: (x) -> new KVMap x, @
+    reverse: -> @foldLeft(map()) (acc, item) -> acc.append item
+    
+  class KVMap extends Map then constructor: (@head, @tail) ->
+  class EmptyMap extends Map then constructor: ->
+
+  map = (items...) -> if items.length is 0 then new EmptyMap()
+  else new KVMap items[0], map.apply @, items.slice 1
+    
+  class Seq  extends Iterable
     #toStrig method
     toString: -> "Seq(#{@foldRight("") (item, acc) -> if acc is "" then item else "#{item}, #{acc}"})"
-
-    #Sugar method for creating sequences easily
-    @apply: (items...) -> if items.length is 0 then nil else (new Cons items[0], Seq.apply.apply @, items.slice 1)
 
     #Haskell : function or Scala :: method
     append: (el) -> new Cons el, @
 
-    #Method for reverse the sequence
-    reverse: -> @foldLeft(seq()) (acc, item) -> acc.append item
-
     #Method for folding the sequence in the left side
     foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc else (@tail.foldLeft fn acc, @head) fn
 
-    #Method for folding the sequence in the right side
-    foldRight: (ac) -> (fn) => @reverse().foldLeft(ac) (acc, item) -> fn item, acc
+    reverse: -> @foldLeft(seq()) (acc, item) -> acc.append item
 
     #Haskell and Scala ++ function
     concat: (list) ->
@@ -98,16 +127,15 @@ fpJS = do ->
       (@foldLeft seq()) (acc, item) -> acc.concat item 
     else @
 
+    join: -> @flatten()
+
     #Method for transforming the sequence of type A in a sequence in type B
     fmap: (fn) -> @foldRight(seq()) (item, acc) -> acc.append fn item
 
     #Haskell <*> function for mapping a sequence of functions and a sequence of simple data
     afmap: (listfn) -> listfn.flatMap (f) => @fmap f
-
-    #Haskell >>= or Scala flatMap
-    flatMap: (fn) -> (@fmap fn).flatten()
     
-  seq = Seq.apply
+  seq = (items...) -> if items.length is 0 then nil else (new Cons items[0], seq.apply @, items.slice 1)
   
   arrayToSeq = (arr) -> if arr instanceof Array
     helper =  (head) -> (tail) -> if head instanceof Array
@@ -194,6 +222,7 @@ fpJS = do ->
     getOrElse: (v) -> v()
     toString: -> "Failure(#{@exception})"
     
+  #State Monad
   class State extends Monad
     constructor: (@run) ->
     fmap: (f) -> new State (s) =>
@@ -215,6 +244,8 @@ fpJS = do ->
     Functor, Applicative, Monad
     #maybe
     Just, nothing
+    #coollections.map
+    map
     #collections.seq
     seq, Cons, nil, arrayToSeq
     #collections.tree
