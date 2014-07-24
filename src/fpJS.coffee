@@ -1,7 +1,12 @@
 fpJS = do ->
+  notInstance = null
+  mapInstance = null
+  nilInstance = null
+  emptyTreeInstance = null
+  
   #Adding Ordering to all objects and instances of native JS
   Object::equals = (o) -> @toString() is o.toString()
-  Object::compare = (x) -> throw new Error "No implementation"
+  Object::compare = (x) -> throw Error "No implementation"
   Object::lessThan = (x) -> (@compare x) is -1
   Object::greaterThan = (x) -> (@compare x) is 1
   
@@ -16,13 +21,13 @@ fpJS = do ->
   
   #Set of abstract classes- JS has no abstract class itself so throw error in constructor is the way I found to ignore this detail
   class Any
-    constructor: -> throw new Error "No direct constructor"
+    constructor: -> throw Error "No direct constructor"
     toString: -> "#{@}"
     hashCode: -> 13
     equals: (x) -> x instanceof Any and @hashCode() is x.hashCode()
     
   class Ordering extends Any
-    compare: (x) -> throw new Error "No implementation"
+    compare: (x) -> throw Error "No implementation"
     lessThan: (x) -> (@compare x) is -1
     greaterThan: (x) -> (@compare x) is 1
 
@@ -35,7 +40,7 @@ fpJS = do ->
 
   class Applicative extends Joinable
     #Haskell <*> function
-    afmap: (fn) -> throw new Error "No implementation"
+    afmap: (fn) -> throw Error "No implementation"
 
   class Monad extends Applicative
     #Haskell >>= function
@@ -51,18 +56,19 @@ fpJS = do ->
     toString: -> "Just(#{@v})"
     get: -> @v
     join: -> @get()
-    equals: (x) -> if x instanceof Just
-      if typeof @v isnt "object" and typeof v isnt "object"
-        @v is x.v
-      else if typeof @v is "object" and typeof x is "object" and x.equals then x.equals @v else false
-    else false
-
-  nothing = new class Nothing extends Maybe
+    equals: (x) -> if x instanceof Just then @v.equals x.v else false
+    
+  class Nothing extends Maybe
     constructor: ->
     toString: -> "Nothing"
     get: -> throw new Error "Nothing.get"
     join: -> @
     equals: (x) -> x instanceof Nothing
+
+  nothing = -> if notInstance is null
+    notInstance = new Nothing()
+    notInstance
+  else notInstance
 
   class Iterable extends Monad
     length: -> @foldLeft(0) (acc, item) -> acc + item
@@ -94,15 +100,20 @@ fpJS = do ->
     
     get: (k) -> 
       tmp = @filter (x) -> x[0] is k
-      if tmp.length() is 0 then nothing else new Just tmp.head[1]
+      if tmp.length() is 0 then nothing() else new Just tmp.head[1]
 
     getV: (k) -> (@get k).getOrElse -> throw Error "No such element"
     
   class KVMap extends Map then constructor: (@head, @tail) ->
+  
+  class EmptyMap extends Map then constructor: ->
 
-  emptyMap = new class EmptyMap extends Map then constructor: ->
+  emptyMap = -> if mapInstance is null
+    mapInstance = new EmptyMap()
+    mapInstance
+  else mapInstance = null
 
-  map = (items...) -> if items.length is 0 then emptyMap else new KVMap items[0], map.apply @, items.slice 1
+  map =  (items...) -> if items.length is 0 then emptyMap() else new KVMap items[0], map.apply @, items.slice 1
     
   class Seq  extends Iterable
     #toStrig method
@@ -128,7 +139,7 @@ fpJS = do ->
     filter: (p) -> @foldLeft(seq()) (acc, item) -> if p item then acc.append item else acc
 
     #Method for finding an item inside de sequence
-    find: (p) -> if @ instanceof Nil then nothing else if p @head then new Just @head else @tail.find p
+    find: (p) -> if @ instanceof Nil then nothing() else if p @head then new Just @head else @tail.find p
     
     #Method that transforms a Seq of Seq's in a single Seq
     flatten: ->  if @head instanceof Seq
@@ -143,7 +154,7 @@ fpJS = do ->
     #Haskell <*> function for mapping a sequence of functions and a sequence of simple data
     afmap: (listfn) -> listfn.flatMap (f) => @fmap f
     
-  seq = (items...) -> if items.length is 0 then nil else (new Cons items[0], seq.apply @, items.slice 1)
+  seq = (items...) -> if items.length is 0 then nil() else (new Cons items[0], seq.apply @, items.slice 1)
   
   arrayToSeq = (arr) -> if arr instanceof Array
     helper =  (head) -> (tail) -> if head instanceof Array
@@ -163,20 +174,30 @@ fpJS = do ->
     equals: (x) -> if x instanceof Cons
       if @head.equals x.head then @tail.equals x.tail else false
     else false
-
-  nil = new class Nil extends Seq
+    
+  class Nil extends Seq
     constructor: ->
-    headOps: -> nothing
+    headOps: -> nothing()
     equals: (x) -> x instanceof Nil
+
+  nil = -> if nilInstance is null
+    nilInstance = new Nil()
+    nilInstance
+  else nilInstance
     
   #seq.Tree
   class Tree extends Any
 
-  emptyBranch = new class EmptyBranch extends Tree
+  class EmptyBranch extends Tree
     constructor: ->
     toString: -> ""
     equals: (t) -> t instanceof EmptyBranch
     include: (x) -> new Branch emptyBranch, x, emptyBranch
+    
+  emptyBranch = -> if emptyTreeInstance is null
+    emptyTreeInstance = new EmptyBranch
+    emptyTreeInstance
+  else emptyTreeInstance
 
   class Branch extends Tree
     constructor: (@left, @value, @right) ->
@@ -195,7 +216,7 @@ fpJS = do ->
   #Range
   class Range extends Any
     constructor: (@start, @end, @step = 1) ->
-    to: -> if @start >= @end then nil else new Cons @start, (new Range (@start+@step), @end, @step).to()
+    to: -> if @start >= @end then nil() else new Cons @start, (new Range (@start+@step), @end, @step).to()
     
   class Either extends Any 
     fold: (rfn, lfn) -> if @ instanceof Right then rfn @value else lfn @value
