@@ -111,7 +111,7 @@ fpJS = do ->
   emptyMap = -> if mapInstance is null
     mapInstance = new EmptyMap()
     mapInstance
-  else mapInstance = null
+  else mapInstance
 
   map =  (items...) -> if items.length is 0 then emptyMap() else new KVMap items[0], map.apply @, items.slice 1
     
