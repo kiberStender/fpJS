@@ -72,6 +72,7 @@ fpJS = do ->
 
   class Iterable extends Monad
     length: -> @foldLeft(0) (acc, item) -> acc + item
+    
     concat: (i) -> throw Error "Not implemented yet!!!"
     
     #Method for folding the sequence in the left side
@@ -79,12 +80,14 @@ fpJS = do ->
 
     #Method for folding the sequence in the right side
     foldRight: (ac) -> (fn) => @reverse().foldLeft(ac) (acc, item) -> fn item, acc
-    
+
     #Method for reverse the sequence
     reverse: -> throw Error "Not implemented yet!!!"
 
     #Method for filtering the sequence
     filter: (p) -> throw Error "Not implemented yet!!!"
+    
+    splitAt: (el) -> throw Error "Not implemented yet!!!"
 
   class Map extends Iterable
     toString: -> "Map(#{@foldRight("") (item, acc) ->
@@ -104,6 +107,13 @@ fpJS = do ->
 
     getV: (k) -> (@get k).getOrElse -> throw Error "No such element"
     
+    splitAt: (el) -> 
+      splitR = (n) -> (cur) -> (pre) -> if cur instanceof EmptyMap then [pre, emptyMap()]
+      else if n is 0 then [pre, cur]
+      else (((splitR n - 1) cur.tail) pre.append cur.head)
+      
+      (((splitR el) @) emptyMap())
+    
   class KVMap extends Map then constructor: (@head, @tail) ->
   
   class EmptyMap extends Map then constructor: ->
@@ -113,7 +123,7 @@ fpJS = do ->
     mapInstance
   else mapInstance
 
-  map =  (items...) -> if items.length is 0 then emptyMap() else new KVMap items[0], map.apply @, items.slice 1
+  map = (items...) -> if items.length is 0 then emptyMap() else new KVMap items[0], (map.apply @, items.slice 1)
     
   class Seq  extends Iterable
     #toStrig method
@@ -134,6 +144,13 @@ fpJS = do ->
       else (helper l1.append l2.head) l2.tail
 
       (helper list) @reverse()
+      
+    splitAt: (el) -> 
+      splitR = (n) -> (cur) -> (pre) -> if cur instanceof Nil then [pre.reverse(), nil()]
+      else if n is 0 then [pre.reverse(), cur]
+      else (((splitR n - 1) cur.tail) pre.append cur.head)
+      
+      (((splitR el) @) nil())
 
     #Method for filtering the sequence
     filter: (p) -> @foldLeft(seq()) (acc, item) -> if p item then acc.append item else acc

@@ -29,3 +29,5 @@ describe "Seq instances", ->
   it "[1, 2, 3] should be mapped to Seq(1, 2, 3)", -> chai.expect((arrayToSeq [1, 2, 3]).equals seq 1, 2, 3).to.be.true
   it "[[1, 2], [3, 4], [5, 6]] should be mapped to Seq(seq(1, 2), seq(3, 4), seq(5, 6))", -> 
     chai.expect((arrayToSeq [[1, 2], [3, 4], [5, 6]]).equals seq (seq 1, 2), (seq 3, 4), (seq 5, 6)).to.be.true
+  it "Seq(1, 2, 3, 4) should be splited at middle and be a tuple of [Seq(1, 2). Seq(3, 4)]", ->
+    chai.expect(seq(1, 2, 3, 4).splitAt 2).should.equal [seq(1, 2), seq(3, 4)]
