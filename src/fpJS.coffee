@@ -47,16 +47,17 @@ fpJS = do ->
     flatMap: (fn) -> @fmap(fn).join()
 
   class Maybe extends Monad
-    fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @v
-    afmap: (some) -> if some instanceof Nothing then @ else @fmap some.v
-    getOrElse: (v) -> if @ instanceof Nothing then v() else @v
+    fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @v()
+    afmap: (some) -> if some instanceof Nothing then @ else @fmap some.v()
+    getOrElse: (v) -> if @ instanceof Nothing then v() else @v()
 
   class Just extends Maybe
-    constructor: (@v) ->
-    toString: -> "Just(#{@v})"
-    get: -> @v
-    join: -> @get()
-    equals: (x) -> if x instanceof Just then @v.equals x.v else false
+    constructor: (v) ->
+      @v = -> v  
+      @toString = -> "Just(#{v})"
+      @get = -> v
+      @join = -> v
+      @equals = (x) -> if x instanceof Just then v.equals x.v() else false
     
   class Nothing extends Maybe
     constructor: ->
