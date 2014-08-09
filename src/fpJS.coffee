@@ -51,13 +51,12 @@ fpJS = do ->
     afmap: (some) -> if some instanceof Nothing then @ else @fmap some.v()
     getOrElse: (v) -> if @ instanceof Nothing then v() else @v()
 
-  class Just extends Maybe
-    constructor: (v) ->
-      @v = -> v  
-      @toString = -> "Just(#{v})"
-      @get = -> v
-      @join = -> v
-      @equals = (x) -> if x instanceof Just then v.equals x.v() else false
+  class Just extends Maybe then constructor: (v) ->
+    @v = -> v  
+    @toString = -> "Just(#{v})"
+    @get = -> v
+    @join = -> v
+    @equals = (x) -> if x instanceof Just then v.equals x.v() else false
     
   class Nothing extends Maybe
     constructor: ->
@@ -96,28 +95,30 @@ fpJS = do ->
       if acc is "" then "#{k} -> #{v}" else "#{acc}, #{k} -> #{v}"
     })"
 
-    foldLeft: (acc) -> (fn) => if @ instanceof EmptyMap then acc else (@tail.foldLeft fn acc, @head) fn
-
     append: (x) -> new KVMap x, @
     reverse: -> @foldLeft(map()) (acc, item) -> acc.append item
     filter: (p) -> @foldLeft(map()) (acc, item) -> if p item then acc.append item else acc
     
     get: (k) -> 
       tmp = @filter (x) -> x[0] is k
-      if tmp.length() is 0 then nothing() else new Just tmp.head[1]
+      if tmp.length() is 0 then nothing() else new Just tmp.head()[1]
 
     getV: (k) -> (@get k).getOrElse -> throw Error "No such element"
     
     splitAt: (el) -> 
       splitR = (n) -> (cur) -> (pre) -> if cur instanceof EmptyMap then [pre, emptyMap()]
       else if n is 0 then [pre, cur]
-      else (((splitR n - 1) cur.tail) pre.append cur.head)
+      else (((splitR n - 1) cur.tail()) pre.append cur.head())
       
       (((splitR el) @) emptyMap())
     
-  class KVMap extends Map then constructor: (@head, @tail) ->
+  class KVMap extends Map then constructor: (head, tail) ->
+    @head = -> head
+    @tail = -> tail
+    @foldLeft = (acc) -> (fn) -> (tail.foldLeft fn acc, head) fn
   
   class EmptyMap extends Map then constructor: ->
+    @foldLeft = (acc) -> (fn) -> acc
 
   emptyMap = -> if mapInstance is null
     mapInstance = new EmptyMap()
@@ -132,9 +133,6 @@ fpJS = do ->
 
     #Haskell : function or Scala :: method
     append: (el) -> new Cons el, @
-
-    #Method for folding the sequence in the left side
-    foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc else (@tail().foldLeft fn acc, @head()) fn
 
     reverse: -> @foldLeft(seq()) (acc, item) -> acc.append item
 
@@ -190,6 +188,7 @@ fpJS = do ->
     @head = -> head
     @tail = -> tail
     @headOps = -> new Just head
+    @foldLeft = (acc) -> (fn) -> (tail.foldLeft fn acc, head) fn
     @equals = (x) -> if x instanceof Cons
       if head.equals x.head() then tail.equals x.tail() else false
     else false
@@ -197,6 +196,7 @@ fpJS = do ->
   class Nil extends Seq
     constructor: ->
     headOps: -> nothing()
+    foldLeft: (acc) -> (fn) -> acc
     equals: (x) -> x instanceof Nil
 
   nil = -> if nilInstance is null
