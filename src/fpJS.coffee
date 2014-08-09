@@ -134,7 +134,7 @@ fpJS = do ->
     append: (el) -> new Cons el, @
 
     #Method for folding the sequence in the left side
-    foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc else (@tail.foldLeft fn acc, @head) fn
+    foldLeft: (acc) -> (fn) => if @ instanceof Nil then acc else (@tail().foldLeft fn acc, @head()) fn
 
     reverse: -> @foldLeft(seq()) (acc, item) -> acc.append item
 
@@ -142,14 +142,14 @@ fpJS = do ->
     concat: (list) ->
       helper = (l1) -> (l2) -> if l2 instanceof Nil then l1
       else if l1 instanceof Nil then l2
-      else (helper l1.append l2.head) l2.tail
+      else (helper l1.append l2.head()) l2.tail()
 
       (helper list) @reverse()
       
     splitAt: (el) -> 
       splitR = (n) -> (cur) -> (pre) -> if cur instanceof Nil then [pre.reverse(), nil()]
       else if n is 0 then [pre.reverse(), cur]
-      else (((splitR n - 1) cur.tail) pre.append cur.head)
+      else (((splitR n - 1) cur.tail()) pre.append cur.head())
       
       (((splitR el) @) nil())
 
@@ -157,10 +157,10 @@ fpJS = do ->
     filter: (p) -> @foldLeft(seq()) (acc, item) -> if p item then acc.append item else acc
 
     #Method for finding an item inside de sequence
-    find: (p) -> if @ instanceof Nil then nothing() else if p @head then new Just @head else @tail.find p
+    find: (p) -> if @ instanceof Nil then nothing() else if p @head() then new Just @head() else @tail().find p
     
     #Method that transforms a Seq of Seq's in a single Seq
-    flatten: ->  if @head instanceof Seq
+    flatten: ->  if @head() instanceof Seq
       (@foldLeft seq()) (acc, item) -> acc.concat item 
     else @
 
@@ -186,11 +186,12 @@ fpJS = do ->
       else (arrayToSeq arr.slice 1).append arr[0]
   else throw new Error "Not an Array"
 
-  class Cons extends Seq
-    constructor: (@head, @tail) ->
-    headOps: -> new Just @head
-    equals: (x) -> if x instanceof Cons
-      if @head.equals x.head then @tail.equals x.tail else false
+  class Cons extends Seq then constructor: (head, tail) ->
+    @head = -> head
+    @tail = -> tail
+    @headOps = -> new Just head
+    @equals = (x) -> if x instanceof Cons
+      if head.equals x.head() then tail.equals x.tail() else false
     else false
     
   class Nil extends Seq
