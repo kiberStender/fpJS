@@ -218,19 +218,22 @@ fpJS = do ->
     emptyTreeInstance
   else emptyTreeInstance
 
-  class Branch extends Tree
-    constructor: (@left, @value, @right) ->
-    toString: -> "{#{@left} #{@value} #{@right}}"
+  class Branch extends Tree then constructor: (left, value, right) ->
+    @left = -> left
+    @value = -> value
+    @right = -> right
     
-    equals: (t) -> if t instanceof Branch
-      if @value.equals t.value then (@left.equals t.left) && (@right.equals t.right) else false
+    @toString = -> "{#{left} #{value} #{right}}"
+    
+    @equals = (t) -> if t instanceof Branch
+      if value.equals t.value() then (left.equals t.left()) && (right.equals t.right()) else false
     else false
     
-    include: (x) -> switch @value.compare x
-      when 1 then new Branch (@left.include x), @value, @right
+    @include = (x) -> switch value.compare x
+      when 1 then new Branch (left.include x), value, right
       when 0 then @
-      when -1 then new Branch @left, @value,  @right.include x
-      when -2 then new Error "Type constraint problem. X[#{typeof x}] different from value[#{typeof @value}]"
+      when -1 then new Branch left, value,  right.include x
+      when -2 then new Error "Type constraint problem. X[#{typeof x}] different from value[#{typeof value}]"
       
   #Range
   class Range extends Any
@@ -238,15 +241,15 @@ fpJS = do ->
     to: -> if @start >= @end then nil() else new Cons @start, (new Range (@start+@step), @end, @step).to()
     
   class Either extends Any 
-    fold: (rfn, lfn) -> if @ instanceof Right then rfn @value else lfn @value
+    fold: (rfn, lfn) -> if @ instanceof Right then rfn @value() else lfn @value()
 
-  class Right extends Either 
-    constructor: (@value) ->
-    toString: -> "Right(#{@value})"
+  class Right extends Either then constructor: (value) ->
+    @value = -> value
+    @toString = -> "Right(#{value})"
 
-  class Left extends Either
-    constructor: (@value) ->
-    toString: -> "Left(#{@value})"    
+  class Left extends Either then constructor: (value) ->
+    @value = -> value
+    toString: -> "Left(#{value})"    
 
   class Try extends Monad
     @apply: (fn) -> try new Success fn() catch e then new Failure e
@@ -254,32 +257,30 @@ fpJS = do ->
   #syntax sugar for Try.apply
   _try = Try.apply
 
-  class Success extends Try
-    constructor: (@value) ->
-    flatMap: (f) -> try f @value catch e then new Failure e
-    fmap: (fn) -> _try => fn @value
-    getOrElse: (v) -> @value
-    toString: -> "Success(#{@value})"
+  class Success extends Try then constructor: (value) ->
+    @flatMap = (f) -> try f value catch e then new Failure e
+    @fmap = (fn) -> _try -> fn value
+    @getOrElse = (v) -> value
+    @toString = -> "Success(#{value})"
 
-  class Failure extends Try
-    constructor: (@exception) ->
-    flatMap: (f) -> @
-    fmap: (fn) -> @
-    getOrElse: (v) -> v()
-    toString: -> "Failure(#{@exception})"
+  class Failure extends Try then constructor: (exception) ->
+    @flatMap = (f) -> @
+    @fmap = (fn) -> @
+    @getOrElse = (v) -> v()
+    @toString = -> "Failure(#{exception})"
     
   #State Monad
   class State extends Monad
     constructor: (@run) ->
-    fmap: (f) -> new State (s) =>
-      [a, t] = @run s
-      [(f a), t]
+      @fmap = (f) -> new State (s) ->
+        [a, t] = run s
+        [(f a), t]
 
-    flatMap: (f) -> new State (s) =>
-      [a, t] = @run s
-      (f a).run t
+      @flatMap = (f) -> new State (s) ->
+        [a, t] = run s
+        (f a).run t
 
-    evaluate: (s) -> @run(s)[0]
+      @evaluate = (s) -> run(s)[0]
 
     @insert: (a) -> new State (s) -> [a, s]
     @get: (f) -> new State (s) -> [(f s), s]
