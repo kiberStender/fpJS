@@ -235,10 +235,22 @@ fpJS = do ->
       when -1 then new Branch left, value,  right.include x
       when -2 then new Error "Type constraint problem. X[#{typeof x}] different from value[#{typeof value}]"
       
+  Number::to = (end) -> new Range (@ + 0), end
+  Number::until = (end) -> new Range (@ + 0), (end - 1)
+      
   #Range
-  class Range extends Any
-    constructor: (@start, @end, @step = 1) ->
-    to: -> if @start >= @end then nil() else new Cons @start, (new Range (@start+@step), @end, @step).to()
+  class Range extends Seq then constructor: (start, end, step = 1) ->
+    toSeq =  ->
+      helper = (st) -> if st > end then nil() else new Cons st, helper st + step
+      helper start
+      
+    @toString = -> "Range(#{start}...#{end})"
+    @by = (st) -> new Range start, end, st
+    
+    @fmap = (fn) -> toSeq().fmap fn
+      
+    @flatMap = (fn) -> toSeq().flatMap fn
+    @foldLeft = (acc) -> toSeq().foldLeft acc
     
   class Either extends Any 
     fold: (rfn, lfn) -> if @ instanceof Right then rfn @value() else lfn @value()
@@ -297,8 +309,6 @@ fpJS = do ->
     seq, Cons, nil, arrayToSeq
     #collections.tree
     emptyBranch, Branch
-    #collections.range
-    Range
     #utils.either
     Right, Left
     #utils.try_
