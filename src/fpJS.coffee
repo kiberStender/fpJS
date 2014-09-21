@@ -106,7 +106,7 @@ fpJS = do ->
     
     toStringFrmt: (acc) -> (item) -> throw Error "Not implemented yet!!!"
     
-    length: -> @foldLeft(0) (acc) -> (item) -> acc + item
+    length: -> @foldLeft(0) (acc) -> (item) -> acc + 1
     
     #Method for filtering the sequence
     filter: (p) -> throw Error "Not implemented yet!!!"
