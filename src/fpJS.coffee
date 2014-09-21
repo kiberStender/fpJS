@@ -70,26 +70,65 @@ fpJS = do ->
     notInstance
   else notInstance
 
-  class Iterable extends Monad
-    length: -> @foldLeft(0) (acc, item) -> acc + item
+  class Traversable extends Monad
+    isEmpty: -> throw Error "Not implemented yet!!!"
     
-    concat: (i) -> throw Error "Not implemented yet!!!"
+    head: -> throw Error "Not implemented yet!!!"
     
-    #Method for folding the sequence in the left side
-    foldLeft: (acc) -> (f) -> throw Error "Not implemented yet!!!"
-
-    #Method for folding the sequence in the right side
-    foldRight: (ac) -> (fn) => @reverse().foldLeft(ac) (acc, item) -> fn item, acc
-
-    #Method for reverse the sequence
-    reverse: -> throw Error "Not implemented yet!!!"
-
+    tail: -> throw Error "Not implemented yet!!!"
+    
+    init: -> throw Error "Not implemented yet!!!"
+    
+    last: -> throw Error "Not implemented yet!!!"
+    
+    maybeHead: -> throw Error "Not implemented yet!!!"
+    
+    maybeLast: -> throw Error "Not implemented yet!!!"
+    
+    empty: -> throw Error "Not implemented yet!!!"
+    
+    ###
+     Scala :: and Haskell : functions
+     @param item the item to be appended to the collection
+     @return a new collection
+    ###
+    cons: (item) -> throw Error "Not implemented yet!!!"
+    
+    ###
+     Scala and Haskell ++ function
+     @param prefix new collection to be concat in the end of this collection
+     @return a new collection
+    ###
+    concat:(tr) -> throw Error "Not implemented yet!!!"
+    
+    toString: -> """#{@prefix()}(#{@foldLeft("") @toStringFrmt})"""
+    
+    prefix: -> throw Error "Not implemented yet!!!"
+    
+    toStringfrmt: (acc) -> (item) -> throw Error "Not implemented yet!!!"
+    
+    length: -> @foldLeft(0) (acc) -> (item) -> acc + item
+    
     #Method for filtering the sequence
     filter: (p) -> throw Error "Not implemented yet!!!"
     
-    splitAt: (el) -> throw Error "Not implemented yet!!!"
+    filterNot: (p) -> filter (x) -> !p x
+    
+    partition: (p) -> [(filter p), filterNot p]
+    
+    find: (p) -> if isEmpty() then nothing() else (if p head() then new Just head else tail().find())
+    
+    splitAt: (n) -> throw Error "Not implemented yet!!!"
+    
+    #Method for folding the sequence in the left side
+    foldLeft: (acc) -> (f) -> if isEmpty() then acc else tail().foldLeft(f(acc) head()) f
 
-  class Map extends Iterable
+    #Method for folding the sequence in the right side
+    foldRight: (ac) -> (fn) -> if isEmpty() then acc else f(head())(tail().foldRight(acc) f)
+    
+    map: (f) -> (@foldRight empty()) (item) -> (acc) -> acc.cons f item
+
+  class Map extends Traversable
     toString: -> "Map(#{@foldRight("") (item, acc) ->
       [k, v] = item
       if acc is "" then "#{k} -> #{v}" else "#{acc}, #{k} -> #{v}"
@@ -127,7 +166,7 @@ fpJS = do ->
 
   map = (items...) -> if items.length is 0 then emptyMap() else new KVMap items[0], (map.apply @, items.slice 1)
     
-  class Seq  extends Iterable
+  class Seq  extends Traversable
     #toStrig method
     toString: -> "Seq(#{@foldRight("") (item, acc) -> if acc is "" then item else "#{item}, #{acc}"})"
 
@@ -240,6 +279,9 @@ fpJS = do ->
       
   #Range
   class Range extends Seq then constructor: (start, end, step = 1) ->
+    @head = -> start
+    @tail = -> if start > end then nil() else new Range (start + step), end, step
+    
     toSeq =  ->
       helper = (st) -> if st > end then nil() else new Cons st, helper st + step
       helper start
@@ -247,10 +289,10 @@ fpJS = do ->
     @toString = -> "Range(#{start}...#{end})"
     @by = (st) -> new Range start, end, st
     
-    @fmap = (fn) -> toSeq().fmap fn
+    @fmap = (fn) -> @foldLeft(seq()) (acc, item) ->
       
-    @flatMap = (fn) -> toSeq().flatMap fn
-    @foldLeft = (acc) -> toSeq().foldLeft acc
+    #@flatMap = (fn) -> toSeq().flatMap fn
+    @foldLeft = (acc) -> (fn) -> (tail().foldLeft fn acc, head()) fn
     
   class Either extends Any 
     fold: (rfn, lfn) -> if @ instanceof Right then rfn @value() else lfn @value()
