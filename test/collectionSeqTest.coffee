@@ -24,7 +24,7 @@ describe "Seq instances", ->
   it "flatMapMaybe(Seq(1, 2, 3, 4, 5)).get() shoud be 8", -> flatMapMaybe(seq 1, 2, 3, 4, 5).get().should.equal 8
   it "Seq(1, 2, 3) should filter to 1", -> chai.expect(s.filter((x) -> x < 2).equals seq 1).to.be.true
   it "Seq(1, 2, 3) should concat to Seq(1, 2, 3, 1, 2, 3)", -> chai.expect(s.concat(s).equals seq 1, 2, 3, 1, 2, 3).to.be.true
-  it "Seq(1, 2, 3) should foldLeft + to 6", -> ((s.foldLeft 0) (acc, x) -> acc + x).should.equal 6
+  it "Seq(1, 2, 3) should foldLeft + to 6", -> ((s.foldLeft 0) (acc) -> (x) -> acc + x).should.equal 6
   it "Seq(1, 2, 3) should be reversed to Seq(3, 2, 1)", -> chai.expect(s.reverse().equals seq 3, 2, 1).to.be.true
   it "[1, 2, 3] should be mapped to Seq(1, 2, 3)", -> chai.expect((arrayToSeq [1, 2, 3]).equals seq 1, 2, 3).to.be.true
   it "[[1, 2], [3, 4], [5, 6]] should be mapped to Seq(seq(1, 2), seq(3, 4), seq(5, 6))", -> 

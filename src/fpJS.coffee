@@ -58,12 +58,11 @@ fpJS = do ->
     @join = -> v
     @equals = (x) -> if x instanceof Just then v.equals x.v() else false
     
-  class Nothing extends Maybe
-    constructor: ->
-    toString: -> "Nothing"
-    get: -> throw new Error "Nothing.get"
-    join: -> @
-    equals: (x) -> x instanceof Nothing
+  class Nothing extends Maybe then constructor: ->
+    @toString = -> "Nothing"
+    @get = -> throw new Error "Nothing.get"
+    @join = -> @
+    @equals = (x) -> x instanceof Nothing
 
   nothing = -> if notInstance is null
     notInstance = new Nothing()
@@ -105,28 +104,28 @@ fpJS = do ->
     
     prefix: -> throw Error "Not implemented yet!!!"
     
-    toStringfrmt: (acc) -> (item) -> throw Error "Not implemented yet!!!"
+    toStringFrmt: (acc) -> (item) -> throw Error "Not implemented yet!!!"
     
     length: -> @foldLeft(0) (acc) -> (item) -> acc + item
     
     #Method for filtering the sequence
     filter: (p) -> throw Error "Not implemented yet!!!"
     
-    filterNot: (p) -> filter (x) -> !p x
+    filterNot: (p) -> @filter (x) -> !p x
     
-    partition: (p) -> [(filter p), filterNot p]
+    partition: (p) -> [(@filter p), @filterNot p]
     
-    find: (p) -> if isEmpty() then nothing() else (if p head() then new Just head else tail().find())
+    find: (p) -> if @isEmpty() then nothing() else (if p @head() then new Just @head() else @tail().find())
     
     splitAt: (n) -> throw Error "Not implemented yet!!!"
     
     #Method for folding the sequence in the left side
-    foldLeft: (acc) -> (f) -> if isEmpty() then acc else tail().foldLeft(f(acc) head()) f
+    foldLeft: (acc) -> (f) => if @isEmpty() then acc else @tail().foldLeft(f(acc) @head()) f
 
     #Method for folding the sequence in the right side
-    foldRight: (ac) -> (fn) -> if isEmpty() then acc else f(head())(tail().foldRight(acc) f)
+    foldRight: (acc) -> (fn) => if @isEmpty() then acc else fn(@head())(@tail().foldRight(acc) fn)
     
-    map: (f) -> (@foldRight empty()) (item) -> (acc) -> acc.cons f item
+    fmap: (f) -> @foldRight(@empty())((item) -> (acc) -> acc.cons f item)
 
   class Map extends Traversable
     toString: -> "Map(#{@foldRight("") (item, acc) ->
@@ -167,44 +166,42 @@ fpJS = do ->
   map = (items...) -> if items.length is 0 then emptyMap() else new KVMap items[0], (map.apply @, items.slice 1)
     
   class Seq  extends Traversable
-    #toStrig method
-    toString: -> "Seq(#{@foldRight("") (item, acc) -> if acc is "" then item else "#{item}, #{acc}"})"
-
+    prefix: -> "Seq"
+    empty: -> nil()
+    toStringFrmt: (acc) -> (item) -> if acc is "" then item else "#{acc}, #{item}"
+    
     #Haskell : function or Scala :: method
-    append: (el) -> new Cons el, @
+    cons: (el) -> new Cons el, @
 
-    reverse: -> @foldLeft(seq()) (acc, item) -> acc.append item
+    reverse: -> @foldLeft(seq()) (acc) -> (item) -> acc.cons item
 
     #Haskell and Scala ++ function
     concat: (list) ->
-      helper = (l1) -> (l2) -> if l2 instanceof Nil then l1
-      else if l1 instanceof Nil then l2
-      else (helper l1.append l2.head()) l2.tail()
+      helper = (l1) -> (l2) -> if l2.isEmpty() then l1
+      else if l1.isEmpty() then l2
+      else (helper l1.cons l2.head()) l2.tail()
 
       (helper list) @reverse()
       
     splitAt: (el) -> 
-      splitR = (n) -> (cur) -> (pre) -> if cur instanceof Nil then [pre.reverse(), nil()]
+      splitR = (n) -> (cur) -> (pre) -> if cur.isEmpty() then [pre.reverse(), nil()]
       else if n is 0 then [pre.reverse(), cur]
-      else (((splitR n - 1) cur.tail()) pre.append cur.head())
+      else (((splitR n - 1) cur.tail()) pre.cons cur.head())
       
       (((splitR el) @) nil())
 
     #Method for filtering the sequence
-    filter: (p) -> @foldLeft(seq()) (acc, item) -> if p item then acc.append item else acc
+    filter: (p) -> @foldLeft(seq()) (acc) -> (item) -> if p item then acc.cons item else acc
 
     #Method for finding an item inside de sequence
-    find: (p) -> if @ instanceof Nil then nothing() else if p @head() then new Just @head() else @tail().find p
+    find: (p) -> if @isEmpty() then nothing() else if p @head() then new Just @head() else @tail().find p
     
     #Method that transforms a Seq of Seq's in a single Seq
     flatten: ->  if @head() instanceof Seq
-      (@foldLeft seq()) (acc, item) -> acc.concat item 
+      (@foldLeft seq()) (acc) -> (item) -> acc.concat item
     else @
 
     join: -> @flatten()
-
-    #Method for transforming the sequence of type A in a sequence in type B
-    fmap: (fn) -> @foldRight(seq()) (item, acc) -> acc.append fn item
 
     #Haskell <*> function for mapping a sequence of functions and a sequence of simple data
     afmap: (listfn) -> listfn.flatMap (f) => @fmap f
@@ -215,27 +212,36 @@ fpJS = do ->
     helper =  (head) -> (tail) -> if head instanceof Array
       (helper head[0]) head.slice 1
     else if tail.length is 0 then seq head
-    else ((helper tail[0]) tail.slice 1).append head
+    else ((helper tail[0]) tail.slice 1).cons head
       
     if arr.length is 0 then seq()
     else
-      if arr[0] instanceof Array then (arrayToSeq arr.slice 1).append (helper arr[0][0]) arr[0].slice 1
-      else (arrayToSeq arr.slice 1).append arr[0]
+      if arr[0] instanceof Array then (arrayToSeq arr.slice 1).cons (helper arr[0][0]) arr[0].slice 1
+      else (arrayToSeq arr.slice 1).cons arr[0]
   else throw new Error "Not an Array"
 
   class Cons extends Seq then constructor: (head, tail) ->
+    @isEmpty = -> false
     @head = -> head
     @tail = -> tail
-    @headOps = -> new Just head
-    @foldLeft = (acc) -> (fn) -> (tail.foldLeft fn acc, head) fn
+    @init = -> @reverse().tail().reverse()
+    @last = -> @reverse().head()
+    @maybeHead = -> new Just head
+    @maybeLast = -> new Just last()
     @equals = (x) -> if x instanceof Cons
       if head.equals x.head() then tail.equals x.tail() else false
     else false
     
   class Nil extends Seq
     constructor: ->
+    isEmpty: -> true
+    head : -> throw Error "No such element"
+    tail: -> throw Error "No such element"
+    init: -> throw Error "No such element"
+    last: -> throw Error "No such element"
+    maybeHead: -> nothing()
+    maybeLast: -> nothing()
     headOps: -> nothing()
-    foldLeft: (acc) -> (fn) -> acc
     equals: (x) -> x instanceof Nil
 
   nil = -> if nilInstance is null
