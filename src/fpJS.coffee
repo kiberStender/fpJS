@@ -126,6 +126,16 @@ fpJS = do ->
     foldRight: (acc) -> (fn) => if @isEmpty() then acc else fn(@head())(@tail().foldRight(acc) fn)
     
     fmap: (f) -> @foldRight(@empty())((item) -> (acc) -> acc.cons f item)
+    
+    #Method that transforms a Traversable of Traversable's in a single Traversable
+    flatten: ->  if @head() instanceof Traversable
+      (@foldLeft @empty()) (acc) -> (item) -> acc.concat item
+    else @
+
+    join: -> @flatten()
+
+    #Haskell <*> function for mapping a sequence of functions and a Traversable of simple data
+    afmap: (listfn) -> listfn.flatMap (f) => @fmap f
 
   class Map extends Traversable
     prefix: -> "Map"
@@ -165,12 +175,23 @@ fpJS = do ->
     @isEmpty = -> false
     @head = -> head
     @tail = -> tail
+    @init = -> if tail.isEmpty() then @ else tail.init()
+    @last = -> if tail.isEmpty() then @ else tail.last()
+    @maybeHead = -> new Just head
+    @maybeLast = -> new Just last()
     @equals = (x) -> if x instanceof KVMap
       if head.equals x.head() then tail.equals x.tail() else false
     else false
   
   class EmptyMap extends Map then constructor: ->
     @isEmpty = -> true
+    @head  = -> throw Error "No such element"
+    @tail = -> throw Error "No such element"
+    @init = -> throw Error "No such element"
+    @last = -> throw Error "No such element"
+    @maybeHead = -> nothing()
+    @maybeLast = -> nothing()
+    @headOps = -> nothing()
     equals: (x) -> x instanceof EmptyMap
 
   emptyMap = -> if mapInstance is null
@@ -208,16 +229,6 @@ fpJS = do ->
     #Method for filtering the sequence
     filter: (p) -> @foldLeft(seq()) (acc) -> (item) -> if p item then acc.cons item else acc
     
-    #Method that transforms a Seq of Seq's in a single Seq
-    flatten: ->  if @head() instanceof Seq
-      (@foldLeft seq()) (acc) -> (item) -> acc.concat item
-    else @
-
-    join: -> @flatten()
-
-    #Haskell <*> function for mapping a sequence of functions and a sequence of simple data
-    afmap: (listfn) -> listfn.flatMap (f) => @fmap f
-    
   seq = (items...) -> if items.length is 0 then nil() else (new Cons items[0], seq.apply @, items.slice 1)
   
   arrayToSeq = (arr) -> if arr instanceof Array
@@ -244,17 +255,16 @@ fpJS = do ->
       if head.equals x.head() then tail.equals x.tail() else false
     else false
     
-  class Nil extends Seq
-    constructor: ->
-    isEmpty: -> true
-    head : -> throw Error "No such element"
-    tail: -> throw Error "No such element"
-    init: -> throw Error "No such element"
-    last: -> throw Error "No such element"
-    maybeHead: -> nothing()
-    maybeLast: -> nothing()
-    headOps: -> nothing()
-    equals: (x) -> x instanceof Nil
+  class Nil extends Seq then constructor: ->
+    @isEmpty = -> true
+    @head  = -> throw Error "No such element"
+    @tail = -> throw Error "No such element"
+    @init = -> throw Error "No such element"
+    @last = -> throw Error "No such element"
+    @maybeHead = -> nothing()
+    @maybeLast = -> nothing()
+    @headOps = -> nothing()
+    @equals = (x) -> x instanceof Nil
 
   nil = -> if nilInstance is null
     nilInstance = new Nil()
