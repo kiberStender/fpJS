@@ -8,7 +8,7 @@ fibMemo = (n) ->
   else State.get((m) -> m.get z).flatMap (u) -> u.fmap(State.insert).getOrElse(->
     fibmemoR(z - 1).flatMap (r) -> fibmemoR(z - 2).flatMap (s) ->
       t = -> r + s
-      State.mod((m) -> m.append [z, t()]).fmap (_) -> t()
+      State.mod((m) -> m.cons [z, t()]).fmap (_) -> t()
   ).fmap (v) -> v
 
   fibmemoR(n).evaluate map()
