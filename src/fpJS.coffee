@@ -200,8 +200,8 @@ fpJS = do ->
   else mapInstance
 
   map = (items...) -> 
-    helper = -> if items.length is 0 then emptyMap() else (map.apply @, items.slice 1).cons items[0]
-    helper items.reverse()
+    helper = (its...) -> if its.length is 0 then emptyMap() else (map.apply @, its.slice 1).cons its[0]
+    helper.apply @, items.reverse()
     
   class Seq  extends Traversable
     prefix: -> "Seq"
