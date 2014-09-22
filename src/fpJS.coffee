@@ -98,7 +98,7 @@ fpJS = do ->
      @param prefix new collection to be concat in the end of this collection
      @return a new collection
     ###
-    concat:(tr) -> throw Error "Not implemented yet!!!"
+    concat: (tr) -> throw Error "Not implemented yet!!!"
     
     toString: -> """#{@prefix()}(#{@foldLeft("") @toStringFrmt})"""
     
@@ -115,7 +115,7 @@ fpJS = do ->
     
     partition: (p) -> [(@filter p), @filterNot p]
     
-    find: (p) -> if @isEmpty() then nothing() else (if p @head() then new Just @head() else @tail().find())
+    find: (p) -> if @isEmpty() then nothing() else (if p @head() then new Just @head() else @tail().find p)
     
     splitAt: (n) -> throw Error "Not implemented yet!!!"
     
@@ -128,42 +128,57 @@ fpJS = do ->
     fmap: (f) -> @foldRight(@empty())((item) -> (acc) -> acc.cons f item)
 
   class Map extends Traversable
-    toString: -> "Map(#{@foldRight("") (item, acc) ->
+    prefix: -> "Map"
+    empty: -> emptyMap()
+    toStringFrmt: (acc) -> (item) -> 
       [k, v] = item
-      if acc is "" then "#{k} -> #{v}" else "#{acc}, #{k} -> #{v}"
-    })"
+      if acc is "" then "(#{k} -> #{v})" else "#{acc}, (#{k} -> #{v})"
 
-    append: (x) -> new KVMap x, @
-    reverse: -> @foldLeft(map()) (acc, item) -> acc.append item
-    filter: (p) -> @foldLeft(map()) (acc, item) -> if p item then acc.append item else acc
+    add: (x) -> new KVMap x, @
     
-    get: (k) -> 
-      tmp = @filter (x) -> x[0] is k
-      if tmp.length() is 0 then nothing() else new Just tmp.head()[1]
+    cons: (x) -> if @isEmpty() then @add x
+    else switch x[0].compare @head()[0]
+      when 1 then @tail().cons(x).add @head()
+      when 0 then (if x[1].equals @head()[1] then @ else @tail().cons x)
+      else @tail().add(@head()).add x
+      
+    concat: (prefix) ->
+      helper = (l1) -> (l2) -> if l2.isEmpty() then l1
+      else if l1.isEmpty() then l2
+      else (helper l1.cons l2.head()) l2.tail()
+      helper(@) prefix
+      
+    get: (k) -> (@find (x) -> x[0].equals k).fmap (x) -> x[1]
+      
+    filter: (p) -> @foldRight(@empty()) (item) -> (acc) -> if p item then acc.cons item else acc
 
     getV: (k) -> (@get k).getOrElse -> throw Error "No such element"
     
     splitAt: (el) -> 
-      splitR = (n) -> (cur) -> (pre) -> if cur instanceof EmptyMap then [pre, emptyMap()]
+      splitR = (n) -> (cur) -> (pre) -> if cur.isEmpty() then [pre, emptyMap()]
       else if n is 0 then [pre, cur]
-      else (((splitR n - 1) cur.tail()) pre.append cur.head())
+      else (((splitR n - 1) cur.tail()) pre.cons cur.head())
       
-      (((splitR el) @) emptyMap())
+      (((splitR el) @) @empty())
     
   class KVMap extends Map then constructor: (head, tail) ->
+    @isEmpty = -> false
     @head = -> head
     @tail = -> tail
-    @foldLeft = (acc) -> (fn) -> (tail.foldLeft fn acc, head) fn
+    @equals = (x) -> if x instanceof KVMap
+      if head.equals x.head() then tail.equals x.tail() else false
+    else false
   
   class EmptyMap extends Map then constructor: ->
-    @foldLeft = (acc) -> (fn) -> acc
+    @isEmpty = -> true
+    equals: (x) -> x instanceof EmptyMap
 
   emptyMap = -> if mapInstance is null
     mapInstance = new EmptyMap()
     mapInstance
   else mapInstance
 
-  map = (items...) -> if items.length is 0 then emptyMap() else new KVMap items[0], (map.apply @, items.slice 1)
+  map = (items...) -> if items.length is 0 then emptyMap() else (map.apply @, items.slice 1).cons items[0]
     
   class Seq  extends Traversable
     prefix: -> "Seq"
@@ -192,9 +207,6 @@ fpJS = do ->
 
     #Method for filtering the sequence
     filter: (p) -> @foldLeft(seq()) (acc) -> (item) -> if p item then acc.cons item else acc
-
-    #Method for finding an item inside de sequence
-    find: (p) -> if @isEmpty() then nothing() else if p @head() then new Just @head() else @tail().find p
     
     #Method that transforms a Seq of Seq's in a single Seq
     flatten: ->  if @head() instanceof Seq
