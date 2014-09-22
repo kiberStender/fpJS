@@ -16,7 +16,7 @@ fpJS = do ->
   else -2
   
   String::compare = (s) -> if typeof s is "string" 
-    if (@ + "").length is s.length then 0 else if (@ + "").length < s.length then -1 else 1
+    if (@ + "") is s then 0 else if (@ + "").length < s.length then -1 else 1
   else -2
   
   #Set of abstract classes- JS has no abstract class itself so throw error in constructor is the way I found to ignore this detail
@@ -199,7 +199,9 @@ fpJS = do ->
     mapInstance
   else mapInstance
 
-  map = (items...) -> if items.length is 0 then emptyMap() else (map.apply @, items.reverse().slice 1).cons items[0]
+  map = (items...) -> 
+    helper = -> if items.length is 0 then emptyMap() else (map.apply @, items.slice 1).cons items[0]
+    helper items.reverse()
     
   class Seq  extends Traversable
     prefix: -> "Seq"
@@ -209,7 +211,7 @@ fpJS = do ->
     #Haskell : function or Scala :: method
     cons: (el) -> new Cons el, @
 
-    reverse: -> @foldLeft(seq()) (acc) -> (item) -> acc.cons item
+    reverse: -> @foldLeft(@empty()) (acc) -> (item) -> acc.cons item
 
     #Haskell and Scala ++ function
     concat: (list) ->
@@ -224,12 +226,12 @@ fpJS = do ->
       else if n is 0 then [pre.reverse(), cur]
       else (((splitR n - 1) cur.tail()) pre.cons cur.head())
       
-      (((splitR el) @) nil())
+      (((splitR el) @) @empty())
 
     #Method for filtering the sequence
-    filter: (p) -> @foldLeft(seq()) (acc) -> (item) -> if p item then acc.cons item else acc
+    filter: (p) -> @foldLeft(@empty()) (acc) -> (item) -> if p item then acc.cons item else acc
     
-  seq = (items...) -> if items.length is 0 then nil() else (new Cons items[0], seq.apply @, items.slice 1)
+  seq = (items...) -> if items.length is 0 then nil() else (seq.apply @, items.slice 1).cons items[0]
   
   arrayToSeq = (arr) -> if arr instanceof Array
     helper =  (head) -> (tail) -> if head instanceof Array
