@@ -1,7 +1,7 @@
 chai = require "chai"
 chai.should()
 
-{fpJS: {map}} = require "../src/fpJS.coffee"
+{fpJS: {map, Just}} = require "../src/fpJS.coffee"
 
 describe "Map instances", ->
   mi = map [1, "kleber"], [2, "eduardo"]
@@ -24,4 +24,9 @@ describe "Map instances", ->
     chai.expect(name.tail().equals map([2, "eduardo"], [3, "scalise"], [4, "stender"])).to.be.true
   it "Init should Map((1 -> kleber), (2 -> eduardo), (3 -> scalise))", -> 
     chai.expect(name.init().equals map [1, "kleber"], [2, "eduardo"], [3, "scalise"]).to.be.true
-  it "Init should Map((4, stender))", -> chai.expect(name.last().equals [4, "stender"]).to.be.true
+  it "Last should Map((4, stender))", -> chai.expect(name.last().equals [4, "stender"]).to.be.true
+  it "Find should return an item whose key is 2", -> 
+    chai.expect(mi.find((x) -> x[0].equals 2).equals new Just [2, "eduardo"]).to.be.true
+  it "Get should return an item whose value is scalise", -> chai.expect(name.get(3).equals new Just "scalise").to.be.true
+  it "FoldLeft (-) shoul return -3", -> ((mi.foldLeft 0) (acc) -> (item) -> acc - item[0]).should.equal -3
+  it "FoldRight (-) shoul return -3", -> ((mi.foldRight 0) (item) -> (acc) -> acc - item[0]).should.equal -3
