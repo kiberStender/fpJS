@@ -30,3 +30,7 @@ describe "Map instances", ->
   it "Get should return an item whose value is scalise", -> chai.expect(name.get(3).equals new Just "scalise").to.be.true
   it "FoldLeft (-) shoul return -3", -> ((mi.foldLeft 0) (acc) -> (item) -> acc - item[0]).should.equal -3
   it "FoldRight (-) shoul return -3", -> ((mi.foldRight 0) (item) -> (acc) -> acc - item[0]).should.equal -3
+  it "Map((1, kleber), (2, eduardo)) should map to Map((1, kleberk), (2, eduardok))", ->
+    chai.expect(mi.fmap((x) -> [x[0], x[1] + 'k']).equals map([1, "kleberk"], [2, "eduardok"])).to.be.true
+  it "Map((1 -> kleber), (2 -> eduardo)) should map to Map((1k -> kleberk), (2k -> eduardo))", ->
+    chai.expect(mi.fmap((x) -> [x[0] + 1, x[1]]).equals map([2, "kleber"], [3, "eduardo"])).to.be.true
