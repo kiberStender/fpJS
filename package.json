@@ -1,6 +1,6 @@
 {
   "name"          : "fpJS",
-  "version"       : "0.0.5",
+  "version"       : "0.0.7",
   "description"   : "Functional object orient lib scala/haskell like",
   "url"           : "https://github.com/kiberStender/fpJS.git",
   "author"        : "Kleber Stender <kleber.stender@gmail.com>",
