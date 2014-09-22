@@ -175,8 +175,8 @@ fpJS = do ->
     @isEmpty = -> false
     @head = -> head
     @tail = -> tail
-    @init = -> if tail.isEmpty() then @ else tail.init()
-    @last = -> if tail.isEmpty() then @ else tail.last()
+    @init = -> if tail.isEmpty() then @empty() else tail.init().cons head
+    @last = -> if tail.isEmpty() then head else tail.last()
     @maybeHead = -> new Just head
     @maybeLast = -> new Just last()
     @equals = (x) -> if x instanceof KVMap
@@ -192,7 +192,7 @@ fpJS = do ->
     @maybeHead = -> nothing()
     @maybeLast = -> nothing()
     @headOps = -> nothing()
-    equals: (x) -> x instanceof EmptyMap
+    @equals = (x) -> x instanceof EmptyMap
 
   emptyMap = -> if mapInstance is null
     mapInstance = new EmptyMap()
