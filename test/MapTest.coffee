@@ -34,3 +34,7 @@ describe "Map instances", ->
     chai.expect(mi.fmap((x) -> [x[0], x[1] + 'k']).equals map([1, "kleberk"], [2, "eduardok"])).to.be.true
   it "Map((1 -> kleber), (2 -> eduardo)) should map to Map((1k -> kleberk), (2k -> eduardo))", ->
     chai.expect(mi.fmap((x) -> [x[0] + 1, x[1]]).equals map([2, "kleber"], [3, "eduardo"])).to.be.true
+  it "Map((1, kleber), (2, eduardo)) should flatMap to Map((1, kleberk), (2, eduardok))", ->
+    chai.expect(mi.flatMap((x) -> map [x[0], x[1] + 'k']).equals map([1, "kleberk"], [2, "eduardok"])).to.be.true
+  it "Map((1 -> kleber), (2 -> eduardo)) should flatMap to Map((1k -> kleberk), (2k -> eduardo))", ->
+    chai.expect(mi.flatMap((x) -> map [x[0] + 1, x[1]]).equals map([2, "kleber"], [3, "eduardo"])).to.be.true
