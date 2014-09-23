@@ -35,33 +35,29 @@ fpJS = do ->
     #method to map the internal data of type A into a data of type B
     fmap: (fn) -> throw Error "No implementation"
 
-  class Joinable extends Functor
-    join: -> throw Error "No implementation"
-
-  class Applicative extends Joinable
+  class Applicative extends Functor
     #Haskell <*> function
     afmap: (fn) -> throw Error "No implementation"
 
   class Monad extends Applicative
     #Haskell >>= function
-    flatMap: (fn) -> @fmap(fn).join()
+    flatMap: (fn) -> throw Error "No implementation"
 
   class Maybe extends Monad
     fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @v()
     afmap: (some) -> if some instanceof Nothing then @ else @fmap some.v()
     getOrElse: (v) -> if @ instanceof Nothing then v() else @v()
+    flatMap: (f) -> if @ instanceof Nothing then @ else f @v()
 
   class Just extends Maybe then constructor: (v) ->
     @v = -> v  
     @toString = -> "Just(#{v})"
     @get = -> v
-    @join = -> v
     @equals = (x) -> if x instanceof Just then v.equals x.v() else false
     
   class Nothing extends Maybe then constructor: ->
     @toString = -> "Nothing"
     @get = -> throw new Error "Nothing.get"
-    @join = -> @
     @equals = (x) -> x instanceof Nothing
 
   nothing = -> if notInstance is null
@@ -127,12 +123,7 @@ fpJS = do ->
     
     fmap: (f) -> @foldRight(@empty())((item) -> (acc) -> acc.cons f item)
     
-    #Method that transforms a Traversable of Traversable's in a single Traversable
-    flatten: ->  if @head() instanceof Traversable
-      (@foldLeft @empty()) (acc) -> (item) -> acc.concat item
-    else @
-
-    join: -> @flatten()
+    flatMap: (f) -> if @isEmpty() then @empty() else @tail().flatMap(f).concat f @head()
 
     #Haskell <*> function for mapping a sequence of functions and a Traversable of simple data
     afmap: (listfn) -> listfn.flatMap (f) => @fmap f
@@ -219,7 +210,7 @@ fpJS = do ->
       else if l1.isEmpty() then l2
       else (helper l1.cons l2.head()) l2.tail()
 
-      (helper list) @reverse()
+      (helper @) list.reverse()
       
     splitAt: (el) -> 
       splitR = (n) -> (cur) -> (pre) -> if cur.isEmpty() then [pre.reverse(), nil()]
@@ -227,6 +218,11 @@ fpJS = do ->
       else (((splitR n - 1) cur.tail()) pre.cons cur.head())
       
       (((splitR el) @) @empty())
+      
+    #Method that transforms a Seq of Seq's in a single Seq
+    flatten: ->  if @head() instanceof Seq
+      (@foldLeft @empty()) (acc) -> (item) -> acc.concat item
+    else @
 
     #Method for filtering the sequence
     filter: (p) -> @foldLeft(@empty()) (acc) -> (item) -> if p item then acc.cons item else acc
