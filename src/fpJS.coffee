@@ -104,8 +104,8 @@ fpJS = do ->
     
     length: -> @foldLeft(0) (acc) -> (item) -> acc + 1
     
-    #Method for filtering the sequence
-    filter: (p) -> throw Error "Not implemented yet!!!"
+    #Method for filtering the traversable
+    filter: (p) -> @foldLeft(@empty()) (acc) -> (item) -> if p item then acc.cons item else acc
     
     filterNot: (p) -> @filter (x) -> !p x
     
@@ -150,8 +150,6 @@ fpJS = do ->
       helper(@) prefix
       
     get: (k) -> (@find (x) -> x[0].equals k).fmap (x) -> x[1]
-      
-    filter: (p) -> @foldRight(@empty()) (item) -> (acc) -> if p item then acc.cons item else acc
 
     getV: (k) -> (@get k).getOrElse -> throw Error "No such element"
     
@@ -221,11 +219,8 @@ fpJS = do ->
       
     #Method that transforms a Seq of Seq's in a single Seq
     flatten: ->  if @head() instanceof Seq
-      (@foldLeft @empty()) (acc) -> (item) -> acc.concat item
+      (@foldRight @empty()) (item) -> (acc) -> acc.concat item
     else @
-
-    #Method for filtering the sequence
-    filter: (p) -> @foldLeft(@empty()) (acc) -> (item) -> if p item then acc.cons item else acc
     
   seq = (items...) -> if items.length is 0 then nil() else (seq.apply @, items.slice 1).cons items[0]
   
