@@ -16,7 +16,7 @@ fpJS = do ->
   else -2
   
   String::compare = (s) -> if typeof s is "string" 
-    if (@ + "") is s then 0 else if (@ + "").length < s.length then -1 else 1
+    if (@ + "") is s then 0 else if @length < s.length then -1 else 1
   else -2
   
   #Set of abstract classes- JS has no abstract class itself so throw error in constructor is the way I found to ignore this detail
