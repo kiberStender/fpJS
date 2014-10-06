@@ -44,20 +44,23 @@ fpJS = do ->
     flatMap: (fn) -> throw Error "No implementation"
 
   class Maybe extends Monad
-    fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @v()
-    afmap: (some) -> if some instanceof Nothing then @ else @fmap some.v()
-    getOrElse: (v) -> if @ instanceof Nothing then v() else @v()
-    flatMap: (f) -> if @ instanceof Nothing then @ else f @v()
+    fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @get()
+    afmap: (some) -> if some instanceof Nothing then @ else @fmap some.get()
+    flatMap: (f) -> if @ instanceof Nothing then @ else f @get()
+    getOrElse: (v) -> throw Error "No implementation"
+    get: -> throw Error "No implementation"
 
   class Just extends Maybe then constructor: (v) ->
     @v = -> v  
     @toString = -> "Just(#{v})"
     @get = -> v
-    @equals = (x) -> if x instanceof Just then v.equals x.v() else false
+    @getOrElse = (_v) -> v
+    @equals = (x) -> if x instanceof Just then v.equals x.get() else false
     
   class Nothing extends Maybe then constructor: ->
     @toString = -> "Nothing"
     @get = -> throw new Error "Nothing.get"
+    @getOrElse = (v) -> v()
     @equals = (x) -> x instanceof Nothing
 
   nothing = -> if notInstance is null
