@@ -274,37 +274,6 @@ fpJS = do ->
     nilInstance = new Nil()
     nilInstance
   else nilInstance
-    
-  #seq.Tree
-  class Tree extends Any
-
-  class EmptyBranch extends Tree
-    constructor: ->
-    toString: -> ""
-    equals: (t) -> t instanceof EmptyBranch
-    include: (x) -> new Branch emptyBranch, x, emptyBranch
-    
-  emptyBranch = -> if emptyTreeInstance is null
-    emptyTreeInstance = new EmptyBranch
-    emptyTreeInstance
-  else emptyTreeInstance
-
-  class Branch extends Tree then constructor: (left, value, right) ->
-    @left = -> left
-    @value = -> value
-    @right = -> right
-    
-    @toString = -> "{#{left} #{value} #{right}}"
-    
-    @equals = (t) -> if t instanceof Branch
-      if value.equals t.value() then (left.equals t.left()) && (right.equals t.right()) else false
-    else false
-    
-    @include = (x) -> switch value.compare x
-      when 1 then new Branch (left.include x), value, right
-      when 0 then @
-      when -1 then new Branch left, value,  right.include x
-      when -2 then new Error "Type constraint problem. X[#{typeof x}] different from value[#{typeof value}]"
       
   Number::to = (end) -> new Range (@ + 0), end
   Number::until = (end) -> new Range (@ + 0), (end - 1)
@@ -381,8 +350,6 @@ fpJS = do ->
     map
     #collections.seq
     seq, Cons, nil, arrayToSeq
-    #collections.tree
-    emptyBranch, Branch
     #utils.either
     Right, Left
     #utils.try_
