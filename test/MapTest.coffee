@@ -8,6 +8,8 @@ describe "Map instances", ->
   md = map [1, 2.0]
   messedName = map([4, "stender"], [2, "eduardo"], [1, "kleber"], [3, "scalise"])
   name = map([1, "kleber"], [2, "eduardo"], [3, "scalise"], [4, "stender"])
+  nameMap = map ["scalise", 3], ["stender", 4], ["kleber", 1], ["eduardo", 2]
+  eq = "Map((eduardo -> 2), (kleber -> 1), (scalise -> 3), (stender -> 4))"
   
   it "Map should be equal itself", -> chai.expect(mi.equals mi).to.be.true
   it "Map should be differente from other kinds of Map", -> chai.expect(mi.equals md).to.be.false
@@ -38,3 +40,4 @@ describe "Map instances", ->
     chai.expect(mi.flatMap((x) -> map [x[0], x[1] + 'k']).equals map([1, "kleberk"], [2, "eduardok"])).to.be.true
   it "Map((1 -> kleber), (2 -> eduardo)) should flatMap to Map((1k -> kleberk), (2k -> eduardo))", ->
     chai.expect(mi.flatMap((x) -> map [x[0] + 1, x[1]]).equals map([2, "kleber"], [3, "eduardo"])).to.be.true
+  it "nameMap.toString() should be equals #{eq})", -> chai.expect(nameMap.toString().equals eq).to.be.true
