@@ -152,7 +152,15 @@ fpJS = do ->
       else (helper l1.cons l2.head()) l2.tail()
       helper(@) prefix
       
-    get: (k) -> (@find (x) -> x[0].equals k).fmap (x) -> x[1]
+    get: (k) -> 
+      n = @length()
+      
+      if n is 0 then nothing()
+      else if n is 1
+        if @head()[0].equals k then new Just @head()[1] else nothing()
+      else
+        [x, y] = @splitAt Math.round n / 2
+        if (y.head()[0].compare k) > 0 then x.get k else y.get k
 
     getV: (k) -> (@get k).getOrElse -> throw Error "No such element"
     
