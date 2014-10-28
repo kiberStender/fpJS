@@ -116,6 +116,8 @@ fpJS = do ->
     
     find: (p) -> if @isEmpty() then nothing() else (if p @head() then new Just @head() else @tail().find p)
     
+    contains: (item) -> (@find (x) -> item.equals x) instanceof Just
+    
     splitAt: (n) -> throw Error "Not implemented yet!!!"
     
     #Method for folding the sequence in the left side
