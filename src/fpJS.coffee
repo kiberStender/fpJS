@@ -3,6 +3,7 @@ fpJS = do ->
   mapInstance = null
   nilInstance = null
   emptyTreeInstance = null
+  unitInstance = null
   
   #Adding Ordering to all objects and instances of native JS
   Object::equals = (o) -> @toString() is o.toString()
@@ -30,6 +31,12 @@ fpJS = do ->
     compare: (x) -> throw Error "No implementation"
     lessThan: (x) -> (@compare x) is -1
     greaterThan: (x) -> (@compare x) is 1
+    
+  class Unit extends Any then constructor: ->
+    @equals = (u) -> u instanceof Unit
+    @toString = -> "Unit"
+  
+  unit = -> if not unitInstance then unitInstance = new Unit() else unitInstance
 
   class Functor extends Any
     #method to map the internal data of type A into a data of type B
@@ -51,7 +58,6 @@ fpJS = do ->
     get: -> throw Error "No implementation"
 
   class Just extends Maybe then constructor: (v) ->
-    @v = -> v  
     @toString = -> "Just(#{v})"
     @get = -> v
     @getOrElse = (_v) -> v
@@ -326,6 +332,24 @@ fpJS = do ->
     @getOrElse = (v) -> v()
     @toString = -> "Failure(#{exception})"
     
+  class IO extends Monad then constructor: (f) ->
+    @unsafePerformIO = -> f()
+    @join = (action) -> new IO -> action.unsafePerformIO().unsafePerformIO()
+    @fmap = (fn) -> new IO => fn @unsafePerformIO()
+    @flatMap = (fn) -> @join @fmap fn
+    @foreach = (io) -> @flatMap (a) -> io
+    @toString = -> "IO"
+    
+  IOPerformer = do ->
+    ioPerform = (fn) -> (str) -> new IO ->
+      fn str
+      unit()
+    
+    consoleIO = ioPerform console.log.bind console
+    alertIO = ioPerform alert
+      
+    {consoleIO, alertIO}
+    
   #State Monad
   class State extends Monad
     constructor: (@run) ->
@@ -344,6 +368,8 @@ fpJS = do ->
     @mod: (f) -> new State (s) -> [[], f s]
 
   {
+    #Unit
+    unit
     #typeclases
     Functor, Applicative, Monad
     #maybe
@@ -356,6 +382,9 @@ fpJS = do ->
     Right, Left
     #utils.try_
     _try, Success, Failure
+    #IO
+    IO, IOPerformer
+    #State
     State
   }
 
