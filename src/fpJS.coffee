@@ -138,6 +138,10 @@ fpJS = do ->
 
     #Haskell <*> function for mapping a sequence of functions and a Traversable of simple data
     afmap: (listfn) -> listfn.flatMap (f) => @fmap f
+    
+    zip: (tr) -> if tr.isEmpty() or @isEmpty() then @empty() else @tail.zip(tr.tail()).cons [@head(), tr.head()]
+    
+    zipWith: (tr) -> @zip(tr).fmap fn
 
   class Map extends Traversable
     prefix: -> "Map"
@@ -340,6 +344,16 @@ fpJS = do ->
     @foreach = (io) -> @flatMap (a) -> io
     @toString = -> "IO"
     
+  class FPNode then constructor: (obj) ->
+    @getValue = -> new IO -> if obj instanceof HTMLInputElement then obj.value else obj.innerHTML
+    
+    @setValue = (vl) -> new IO -> if obj instanceof HTMLInputElement
+      obj.value = vl
+      unit()
+    else
+      obj.innerHTML = vl
+      unit()
+    
   IOPerformer = do ->
     ioPerform = (fn) -> (str) -> new IO ->
       fn str
@@ -347,8 +361,15 @@ fpJS = do ->
     
     consoleIO = ioPerform console.log.bind console
     alertIO = ioPerform alert
+    
+    queryAnalyser = (str) ->
+      helper = (arr) -> if arr.length is 0 then seq() else (helper arr.slice 1).concat seq arr[0]
       
-    {consoleIO, alertIO}
+      helper str.split /(?=\W+)/g
+      
+    main = (fn) -> document.addEventListener "DOMContentLoaded", (event) -> fn(event).unsafePerformIO()
+      
+    {alertIO, consoleIO, main}
     
   #State Monad
   class State extends Monad
@@ -373,8 +394,8 @@ fpJS = do ->
     #typeclases
     Functor, Applicative, Monad
     #maybe
-    Just, nothing
-    #coollections.map
+    Nothing, Just, nothing
+    #collections.map
     map
     #collections.seq
     seq, Cons, nil, arrayToSeq
@@ -383,7 +404,7 @@ fpJS = do ->
     #utils.try_
     _try, Success, Failure
     #IO
-    IO, IOPerformer
+    IO, FPNode, IOPerformer
     #State
     State
   }
