@@ -139,7 +139,7 @@ fpJS = do ->
     #Haskell <*> function for mapping a sequence of functions and a Traversable of simple data
     afmap: (listfn) -> listfn.flatMap (f) => @fmap f
     
-    zip: (tr) -> if tr.isEmpty() or @isEmpty() then @empty() else @tail.zip(tr.tail()).cons [@head(), tr.head()]
+    zip: (tr) -> if @isEmpty() or tr.isEmpty() then @empty() else @tail().zip(tr.tail()).cons [@head(), tr.head()]
     
     zipWith: (tr) -> @zip(tr).fmap fn
 
