@@ -30,4 +30,8 @@ describe "Seq instances", ->
   it "[[1, 2], [3, 4], [5, 6]] should be mapped to Seq(seq(1, 2), seq(3, 4), seq(5, 6))", -> 
     chai.expect((arrayToSeq [[1, 2], [3, 4], [5, 6]]).equals seq (seq 1, 2), (seq 3, 4), (seq 5, 6)).to.be.true
   it "Seq(1, 2, 3, 4) should be splited at middle and be a tuple of [Seq(1, 2). Seq(3, 4)]", ->
-    chai.expect(seq(1, 2, 3, 4).splitAt(2).equals [seq(1, 2), seq(3, 4)])
+    chai.expect(seq(1, 2, 3, 4).splitAt(2).equals [seq(1, 2), seq(3, 4)]).to.be.true
+  it "Seq(1, 2, 3) should zip Seq(4, 5, 6) to Seq((1, 4), (2, 5), (,3, 6))", ->
+    chai.expect(seq(1, 2, 3).zip(seq 4, 5, 6).equals seq [1, 4], [2, 5], [3, 6]).to.be.true
+  it "Seq(1, 2, 3) should zipWith Seq(4, 5, 6)(+) to Seq(5, 7, 9)", ->
+    chai.expect(seq(1, 2, 3).zipWith(seq 4, 5, 6)((x) -> x[0] + x[1]).equals seq 5, 7, 9).to.be.true

@@ -141,7 +141,7 @@ fpJS = do ->
     
     zip: (tr) -> if @isEmpty() or tr.isEmpty() then @empty() else @tail().zip(tr.tail()).cons [@head(), tr.head()]
     
-    zipWith: (tr) -> @zip(tr).fmap fn
+    zipWith: (tr) -> (fn) => @zip(tr).fmap fn
 
   class Map extends Traversable
     prefix: -> "Map"
