@@ -289,11 +289,13 @@ fpJS = do ->
       
   #Range
   class Range extends Seq then constructor: (start, end, step = 1) ->
+    @prefix = -> "Range"
     @head = -> start
     @tail = -> if @isEmpty() then nil() else new Range (start + step), end, step
     @isEmpty = -> start > end
       
-    @toString = -> "Range(#{start}...#{end})"
+    toStringFrmt: (acc) -> (item) -> if acc is "" then item else "#{acc}, #{item}"
+    
     @by = (st) -> new Range start, end, st
     
   Number::to = (end) -> new Range (@ + 0), end
