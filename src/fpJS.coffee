@@ -7,7 +7,7 @@ fpJS = do ->
   
   #Adding Ordering to all objects and instances of native JS
   Object::equals = (o) -> @toString() is o.toString()
-  Object::compare = (x) -> throw Error "No implementation"
+  Object::compare = (x) -> throw Error "(Object::compare) No implementation"
   Object::lessThan = (x) -> (@compare x) is -1
   Object::greaterThan = (x) -> (@compare x) is 1
   
@@ -22,13 +22,13 @@ fpJS = do ->
   
   #Set of abstract classes- JS has no abstract class itself so throw error in constructor is the way I found to ignore this detail
   class Any
-    constructor: -> throw Error "No direct constructor"
+    constructor: -> throw Error "(Any) No direct constructor"
     toString: -> "#{@}"
     hashCode: -> 13
     equals: (x) -> x instanceof Any and @hashCode() is x.hashCode()
     
   class Ordering extends Any
-    compare: (x) -> throw Error "No implementation"
+    compare: (x) -> throw Error "(Ordering::compare) No implementation"
     lessThan: (x) -> (@compare x) is -1
     greaterThan: (x) -> (@compare x) is 1
     
@@ -40,22 +40,22 @@ fpJS = do ->
 
   class Functor extends Any
     #method to map the internal data of type A into a data of type B
-    fmap: (fn) -> throw Error "No implementation"
+    fmap: (fn) -> throw Error "(Functor::fmap) No implementation"
 
   class Applicative extends Functor
     #Haskell <*> function
-    afmap: (fn) -> throw Error "No implementation"
+    afmap: (fn) -> throw Error "(Applicative::afmap) No implementation"
 
   class Monad extends Applicative
     #Haskell >>= function
-    flatMap: (fn) -> throw Error "No implementation"
+    flatMap: (fn) -> throw Error "(Monad::flatMap) No implementation"
 
   class Maybe extends Monad
     fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @get()
     afmap: (some) -> if some instanceof Nothing then @ else @fmap some.get()
     flatMap: (f) -> if @ instanceof Nothing then @ else f @get()
-    getOrElse: (v) -> throw Error "No implementation"
-    get: -> throw Error "No implementation"
+    getOrElse: (v) -> throw Error "(Maybe::getOrElse) No implementation"
+    get: -> throw Error "(Maybe::get) No implementation"
 
   class Just extends Maybe then constructor: (v) ->
     @toString = -> "Just(#{v})"
@@ -75,41 +75,41 @@ fpJS = do ->
   else notInstance
 
   class Traversable extends Monad
-    isEmpty: -> throw Error "Not implemented yet!!!"
+    isEmpty: -> throw Error "(Traversable::isEmpty) Not implemented yet!!!"
     
-    head: -> throw Error "Not implemented yet!!!"
+    head: -> throw Error "(Traversable::head) Not implemented yet!!!"
     
-    tail: -> throw Error "Not implemented yet!!!"
+    tail: -> throw Error "(Traversable::tail) Not implemented yet!!!"
     
-    init: -> throw Error "Not implemented yet!!!"
+    init: -> throw Error "(Traversable::init) Not implemented yet!!!"
     
-    last: -> throw Error "Not implemented yet!!!"
+    last: -> throw Error "(Traversable::last) Not implemented yet!!!"
     
-    maybeHead: -> throw Error "Not implemented yet!!!"
+    maybeHead: -> throw Error "(Traversable::maybeHead) Not implemented yet!!!"
     
-    maybeLast: -> throw Error "Not implemented yet!!!"
+    maybeLast: -> throw Error "(Traversable::maybeLast) Not implemented yet!!!"
     
-    empty: -> throw Error "Not implemented yet!!!"
+    empty: -> throw Error "(Traversable::empty) Not implemented yet!!!"
     
     ###
      Scala :: and Haskell : functions
      @param item the item to be appended to the collection
      @return a new collection
     ###
-    cons: (item) -> throw Error "Not implemented yet!!!"
+    cons: (item) -> throw Error "(Traversable::cons) Not implemented yet!!!"
     
     ###
      Scala and Haskell ++ function
      @param prefix new collection to be concat in the end of this collection
      @return a new collection
     ###
-    concat: (tr) -> throw Error "Not implemented yet!!!"
+    concat: (tr) -> throw Error "(Traversable::concat) Not implemented yet!!!"
     
     toString: -> """#{@prefix()}(#{@foldLeft("") @toStringFrmt})"""
     
-    prefix: -> throw Error "Not implemented yet!!!"
+    prefix: -> throw Error "(Traversable::prefix) Not implemented yet!!!"
     
-    toStringFrmt: (acc) -> (item) -> throw Error "Not implemented yet!!!"
+    toStringFrmt: (acc) -> (item) -> throw Error "(Traversable::toStringFrmt) Not implemented yet!!!"
     
     length: -> @foldLeft(0) (acc) -> (item) -> acc + 1
     
@@ -124,7 +124,7 @@ fpJS = do ->
     
     contains: (item) -> (@find (x) -> item.equals x) instanceof Just
     
-    splitAt: (n) -> throw Error "Not implemented yet!!!"
+    splitAt: (n) -> throw Error "(Traversable::splitAt) Not implemented yet!!!"
     
     #Method for folding the sequence in the left side
     foldLeft: (acc) -> (f) => if @isEmpty() then acc else @tail().foldLeft(f(acc) @head()) f
@@ -287,25 +287,17 @@ fpJS = do ->
     nilInstance
   else nilInstance
       
-  Number::to = (end) -> new Range (@ + 0), end
-  Number::until = (end) -> new Range (@ + 0), (end - 1)
-      
   #Range
   class Range extends Seq then constructor: (start, end, step = 1) ->
     @head = -> start
-    @tail = -> if start > end then nil() else new Range (start + step), end, step
-    
-    toSeq =  ->
-      helper = (st) -> if st > end then nil() else new Cons st, helper st + step
-      helper start
+    @tail = -> if @isEmpty() then nil() else new Range (start + step), end, step
+    @isEmpty = -> start > end
       
     @toString = -> "Range(#{start}...#{end})"
     @by = (st) -> new Range start, end, st
     
-    @fmap = (fn) -> @foldLeft(seq()) (acc, item) ->
-      
-    #@flatMap = (fn) -> toSeq().flatMap fn
-    @foldLeft = (acc) -> (fn) -> (tail().foldLeft fn acc, head()) fn
+  Number::to = (end) -> new Range (@ + 0), end
+  Number::until = (end) -> new Range (@ + 0), (end - 1)
     
   class Either extends Any 
     fold: (rfn, lfn) -> if @ instanceof Right then rfn @value() else lfn @value()
