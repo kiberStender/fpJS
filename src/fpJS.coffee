@@ -6,17 +6,17 @@ fpJS = do ->
   unitInstance = null
   
   #Adding Ordering to all objects and instances of native JS
-  Object::equals = Object::equals or (o) -> @toString() is o.toString()
-  Object::compare = Object::compare or (x) -> throw Error "(Object::compare) No implementation"
-  Object::lessThan = Object::lessThan or (x) -> (@compare x) is -1
-  Object::greaterThan = Object::greaterThan or (x) -> (@compare x) is 1
+  Object::equals = (o) -> @toString() is o.toString()
+  Object::compare = (x) -> throw Error "(Object::compare) No implementation"
+  Object::lessThan = (x) -> (@compare x) is -1
+  Object::greaterThan = (x) -> (@compare x) is 1
   
   #Adding Ordering to Native JS objects
-  Number::compare = Number::compare or (x) -> if typeof x is "number"
+  Number::compare = (x) -> if typeof x is "number"
     if (@ + 0) is x then 0 else if (@ + 0) < x then -1 else 1
   else -2
   
-  String::compare = String::compare or (s) -> if typeof s is "string"
+  String::compare = (s) -> if typeof s is "string"
     if (@ + '') is s then 0 else if (@ + '') < s then -1 else 1
   else -2
   
@@ -226,12 +226,11 @@ fpJS = do ->
     reverse: -> @foldLeft(@empty()) (acc) -> (item) -> acc.cons item
 
     #Haskell and Scala ++ function
-    concat: (list) ->
-      helper = (l1) -> (l2) -> if l2.isEmpty() then l1
-      else if l1.isEmpty() then l2
-      else (helper l1.cons l2.head()) l2.tail()
+    concat: (prefix) ->
+      helper = (acc) -> (other) -> if other.isEmpty() then acc
+      else (helper acc.cons other.head()) other.tail()
 
-      (helper @) list.reverse()
+      (helper @) prefix.reverse()
       
     splitAt: (el) -> 
       splitR = (n) -> (cur) -> (pre) -> if cur.isEmpty() then [pre.reverse(), nil()]
@@ -297,8 +296,8 @@ fpJS = do ->
     @toString = -> "Range(#{start}...#{end})"
     @by = (st) -> new Range start, end, st
     
-  Number::to = Number::to or (end) -> new Range (@ + 0), end
-  Number::until = Number::until or (end) -> new Range (@ + 0), (end - 1)
+  Number::to = (end) -> new Range (@ + 0), end
+  Number::until = (end) -> new Range (@ + 0), (end - 1)
     
   class Either extends Any 
     fold: (rfn, lfn) -> if @ instanceof Right then rfn @value() else lfn @value()
@@ -348,7 +347,7 @@ fpJS = do ->
       unit()
     
   IOPerformer = do ->
-    ioPerform = (fn) -> (str) -> new IO ->
+    ioPerform = (fn) -> (str = "") -> new IO ->
       fn str
       unit()
     
