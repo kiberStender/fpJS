@@ -359,7 +359,7 @@ fpJS = do ->
     queryAnalyser = (str) ->
       helper = (arr) -> if arr.length is 0 then seq() else (helper arr.slice 1).concat seq arr[0]
       
-      helper str.split /(?=\W+)/g
+      helper str.split /(?=\.[a-z0-9]|#[a-z0-9]| [a-z0-9])/g
       
     main = (fn) -> document.addEventListener "DOMContentLoaded", (event) -> fn(event).unsafePerformIO()
       
