@@ -356,7 +356,7 @@ fpJS = do ->
     consoleIO = ioPerform console.log.bind console
     alertIO = ioPerform alert
     
-    queryAnalyser = (str) ->
+    queryAnalyzer = (str) ->
       helper = (arr) -> if arr.length is 0 then seq() else (helper arr.slice 1).concat seq arr[0]
       
       helper str.split /(?=\.[a-z0-9]|#[a-z0-9]| [a-z0-9])/g
