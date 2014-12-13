@@ -5,6 +5,10 @@ fpJS = do ->
   emptyTreeInstance = null
   unitInstance = null
   
+  #Adding compose and andThen to native Function class
+  Function::compose = (g) -> (x) => @ g x
+  Function andThen = (g) -> (x) => g @ x
+  
   #Adding Ordering to all objects and instances of native JS
   Object::equals = (o) -> @toString() is o.toString()
   Object::compare = (x) -> throw Error "(Object::compare) No implementation"
