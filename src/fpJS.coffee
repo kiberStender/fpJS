@@ -74,7 +74,7 @@ fpJS = do ->
     @getOrElse = (v) -> v()
     @equals = (x) -> x instanceof Nothing
     
-    just = (value) -> new Just value
+  just = (value) -> new Just value
 
   nothing = -> if notInstance is null
     notInstance = new Nothing()
@@ -404,7 +404,7 @@ fpJS = do ->
     #typeclases
     Functor, Applicative, Monad
     #maybe
-    Nothing, Just, nothing
+    nothing, just
     #collections.map
     map
     #collections.seq
