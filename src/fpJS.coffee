@@ -51,6 +51,7 @@ fpJS = do ->
     afmap: (fn) -> throw Error "(Applicative::afmap) No implementation"
 
   class Monad extends Applicative
+    identity: (a) -> a
     #Haskell >>= function
     flatMap: (fn) -> throw Error "(Monad::flatMap) No implementation"
 
@@ -72,6 +73,8 @@ fpJS = do ->
     @get = -> throw new Error "Nothing.get"
     @getOrElse = (v) -> v()
     @equals = (x) -> x instanceof Nothing
+    
+    just = (value) -> new Just value
 
   nothing = -> if notInstance is null
     notInstance = new Nothing()
@@ -342,6 +345,17 @@ fpJS = do ->
     @foreach = (io) -> @flatMap (a) -> io
     @toString = -> "IO"
     
+  class Promise extends Monad then constructor: (a) ->
+    @then = (fn) ->
+      p = null
+      setTimeout -> p = new Promise fn a
+      p
+    @flatMap = (f) -> @then f
+    @map = (f) -> @flatmap (a) -> new Promise f a
+    @join = (promise) -> promise.flatMap @identity
+    @afmap = (pf) -> pf.flatMap (f) => @map f
+    @liftA2 = (pa) -> (fn) => pa.afmap @map (a) -> (b) -> (fn a) b
+    
   class FPNode then constructor: (obj) ->
     @getValue = -> new IO -> if obj instanceof HTMLInputElement then obj.value else obj.innerHTML
     
@@ -353,9 +367,7 @@ fpJS = do ->
       unit()
     
   IOPerformer = do ->
-    ioPerform = (fn) -> (str = "") -> new IO ->
-      fn str
-      unit()
+    ioPerform = (fn) -> (str = "") -> new IO -> (fn.andThen (_) -> unit()) str
     
     consoleIO = ioPerform console.log.bind console
     alertIO = ioPerform alert
