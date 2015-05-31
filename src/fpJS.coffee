@@ -334,11 +334,9 @@ fpJS = do ->
     @toString = -> "IO"
     
   class Ajax then constructor: (method = "GET", url = "", mData = map(), json = false) ->
-    xhr = -> if window.XMLHttpRequest 
-      new XMLHttpRequest() 
-    else new ActiveXObject("Microsoft.XMLHTTP")
+    xhr = -> if window.XMLHttpRequest then new XMLHttpRequest() else new ActiveXObject("Microsoft.XMLHTTP")
     
-    convertObjectToQueryString = (mData) -> (mData.reduceLeft "") (acc) -> (val) -> 
+    convertObjectToQueryString = (mData) -> (mData.foldLeft "") (acc) -> (val) -> 
       [key, value] = val
       acc + "&#{key}=#{value}"
       
@@ -347,12 +345,13 @@ fpJS = do ->
     @httpFetch = -> new Promise (resolve, reject) ->
       req = xhr()
       
-      req.onreadystatechange = -> if @status is 200 then resolve parseJson @response
-      else reject new Error @statusText
-      
+      req.onreadystatechange = -> if @readyState is 4
+        if @status is 200 then resolve parseJson @response
+        else reject new Error @statusText
+        
       req.onerror = -> reject new Error @statusText
       
-      req.open method method, url
+      req.open method, url, true
       req.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
       req.send convertObjectToQueryString mData
     
