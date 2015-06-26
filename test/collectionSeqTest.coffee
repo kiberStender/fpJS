@@ -1,7 +1,7 @@
 chai = require "chai"
 chai.should()
 
-{fpJS: {seq, Cons, nil, arrayToSeq}} = require "../src/fpJS.coffee"
+{fpJS: {seq, Cons, nil}} = require "../src/fpJS.coffee"
 
 describe "Seq instances", ->
   s = seq 1, 2, 3
@@ -26,9 +26,6 @@ describe "Seq instances", ->
   it "Seq(1, 2, 3) should concat to Seq(1, 2, 3, 1, 2, 3)", -> chai.expect(s.concat(s).equals seq 1, 2, 3, 1, 2, 3).to.be.true
   it "Seq(1, 2, 3) should foldLeft + to 6", -> ((s.foldLeft 0) (acc) -> (x) -> acc + x).should.equal 6
   it "Seq(1, 2, 3) should be reversed to Seq(3, 2, 1)", -> chai.expect(s.reverse().equals seq 3, 2, 1).to.be.true
-  it "[1, 2, 3] should be mapped to Seq(1, 2, 3)", -> chai.expect((arrayToSeq [1, 2, 3]).equals seq 1, 2, 3).to.be.true
-  it "[[1, 2], [3, 4], [5, 6]] should be mapped to Seq(seq(1, 2), seq(3, 4), seq(5, 6))", -> 
-    chai.expect((arrayToSeq [[1, 2], [3, 4], [5, 6]]).equals seq (seq 1, 2), (seq 3, 4), (seq 5, 6)).to.be.true
   it "Seq(1, 2, 3, 4) should be splited at middle and be a tuple of [Seq(1, 2). Seq(3, 4)]", ->
     chai.expect(seq(1, 2, 3, 4).splitAt(2).equals [seq(1, 2), seq(3, 4)]).to.be.true
   it "Seq(1, 2, 3) should zip Seq(4, 5, 6) to Seq((1, 4), (2, 5), (,3, 6))", ->
