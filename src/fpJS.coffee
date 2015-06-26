@@ -289,7 +289,7 @@ fpJS = do ->
     @tail = -> if @isEmpty() then nil() else new Range (start + step), end, step
     @isEmpty = -> start > end
       
-    toStringFrmt: (acc) -> (item) -> if acc is "" then item else "#{acc}, #{item}"
+    @toStringFrmt = (acc) -> (item) -> if acc is "" then item else "#{acc}, #{item}"
     
     @by = (st) -> new Range start, end, st
     
@@ -305,16 +305,19 @@ fpJS = do ->
 
   class Left extends Either then constructor: (value) ->
     @value = -> value
-    toString: -> "Left(#{value})"    
+    toString: -> "Left(#{value})"
+    
+  right = (value) -> new Right value
+  left = (value) -> new Left value
 
   class Try extends Monad
-    @apply: (fn) -> try new Success fn() catch e then new Failure e
+    @apply: (fn) -> try success fn() catch e then failure e
     
   #syntax sugar for Try.apply
   _try = Try.apply
 
   class Success extends Try then constructor: (value) ->
-    @flatMap = (f) -> try f value catch e then new Failure e
+    @flatMap = (f) -> try f value catch e then failure e
     @fmap = (fn) -> _try -> fn value
     @getOrElse = (v) -> value
     @toString = -> "Success(#{value})"
@@ -325,6 +328,9 @@ fpJS = do ->
     @getOrElse = (v) -> v()
     @toString = -> "Failure(#{exception})"
     
+  success = (value) -> new Success value
+  failure = (excp) -> new Failure excp
+  
   class IO extends Monad then constructor: (f) ->
     @unsafePerformIO = -> f()
     @join = (action) -> new IO -> action.unsafePerformIO().unsafePerformIO()
@@ -333,7 +339,7 @@ fpJS = do ->
     @foreach = (io) -> @flatMap (a) -> io
     @toString = -> "IO"
     
-  class Ajax then constructor: (method = "GET", url = "", mData = map(), json = false) ->
+  class Ajax then constructor: (method, url = "", mData = map(), json = false) ->
     xhr = -> if window.XMLHttpRequest then new XMLHttpRequest() else new ActiveXObject("Microsoft.XMLHTTP")
     
     convertObjectToQueryString = (mData) -> (mData.foldLeft "") (acc) -> (val) -> 
@@ -357,8 +363,8 @@ fpJS = do ->
     
   get = (url, json = false) -> (new Ajax "GET", url, map(), json).httpFetch()
   post = (url, mData = map(), json = false) -> (new Ajax "POST", url, mData, json).httpFetch()
-  del = post
-  put = post
+  del = (url, mData = map(), json = false) -> (new Ajax "DELETE", url, mData, json).httpFetch()
+  put = (url, mData = map(), json = false) -> (new Ajax "PUT", url, mData, json).httpFetch()
     
   class FPNode then constructor: (obj) ->
     @getValue = -> new IO -> if obj instanceof HTMLInputElement then obj.value else obj.innerHTML
@@ -414,9 +420,9 @@ fpJS = do ->
     #collections.seq
     seq, Cons, nil
     #utils.either
-    Right, Left
+    right, left
     #utils.try_
-    _try, Success, Failure
+    _try, success, failure
     #IO
     IO, FPNode, IOPerformer
     #Ajax
