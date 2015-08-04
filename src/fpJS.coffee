@@ -367,14 +367,24 @@ fpJS = do ->
   put = (url, mData = map(), json = false) -> (new Ajax "PUT", url, mData, json).httpFetch()
     
   class FPNode then constructor: (obj) ->
-    @getValue = -> new IO -> if obj instanceof HTMLInputElement then obj.value else obj.innerHTML
+    @readHtml = -> new IO -> obj.innerHTML
     
-    @setValue = (vl) -> new IO -> if obj instanceof HTMLInputElement
-      obj.value = vl
-      unit()
-    else
+    @writeHtml = (vl) -> new IO ->
       obj.innerHTML = vl
       unit()
+      
+    @readCss = -> new IO -> obj.style
+    
+    @writeCss = (css) -> new IO ->
+      obj.style = css
+      unit()
+      
+    @readSrc = -> new IO -> obj.src
+    
+    @writeSrc = (src) -> new IO ->
+      obj.src = src
+      unit()
+    
     
   IOPerformer = do ->
     ioPerform = (fn) -> (str = "") -> new IO -> (fn.andThen (_) -> unit()) str
@@ -382,14 +392,11 @@ fpJS = do ->
     consoleIO = ioPerform console.log.bind console
     alertIO = ioPerform alert
     
-    queryAnalyzer = (str) ->
-      helper = (arr) -> if arr.length is 0 then seq() else (helper arr.slice 1).concat seq arr[0]
-      
-      helper str.split /(?=\.[a-z0-9]|#[a-z0-9]| [a-z0-9])/g
+    query = (q) -> new FPNode document.querySelector q
       
     main = (fn) -> document.addEventListener "DOMContentLoaded", (event) -> fn(event).unsafePerformIO()
       
-    {alertIO, consoleIO, main}
+    {alertIO, consoleIO, query, main}
     
   #State Monad
   class State extends Monad
