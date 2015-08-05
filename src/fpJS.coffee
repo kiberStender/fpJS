@@ -367,36 +367,38 @@ fpJS = do ->
   put = (url, mData = map(), json = false) -> (new Ajax "PUT", url, mData, json).httpFetch()
     
   class FPNode then constructor: (obj) ->
-    @readHtml = -> new IO -> obj.innerHTML
+    @readHtml = -> new Promise (rs, rj) -> try rs obj.innerHTML catch e then rj e
     
-    @writeHtml = (vl) -> new IO ->
+    @writeHtml = (vl) -> new Promise (rs, rj) -> try
       obj.innerHTML = vl
-      unit()
+      rs unit()
+    catch e then rj e
       
-    @readCss = -> new IO -> obj.style
+    @readCss = -> new Promise (rs, rj) -> try rs obj.style catch e then rj e
     
-    @writeCss = (css) -> new IO ->
+    @writeCss = (css) -> new Promise (rs, rj) -> try
       obj.style = css
-      unit()
+      rs unit()
+    catch e then rj e
       
-    @readSrc = -> new IO -> obj.src
+    @readSrc = -> new Promise (rs, rj) -> try rs obj.src catch e then rj e
     
-    @writeSrc = (src) -> new IO ->
+    @writeSrc = (src) -> new Promise (rs, rj) -> try
       obj.src = src
-      unit()
+      rs unit()
+    catch e then rj e
     
+  query = (q) -> new FPNode document.querySelector q    
     
   IOPerformer = do ->
     ioPerform = (fn) -> (str = "") -> new IO -> (fn.andThen (_) -> unit()) str
     
     consoleIO = ioPerform console.log.bind console
     alertIO = ioPerform alert
-    
-    query = (q) -> new FPNode document.querySelector q
       
     main = (fn) -> document.addEventListener "DOMContentLoaded", (event) -> fn(event).unsafePerformIO()
       
-    {alertIO, consoleIO, query, main}
+    {alertIO, consoleIO, main}
     
   #State Monad
   class State extends Monad
@@ -431,7 +433,7 @@ fpJS = do ->
     #utils.try_
     _try, success, failure
     #IO
-    IO, FPNode, IOPerformer
+    IO, query, IOPerformer
     #Ajax
     get, post, del, put
     #State
