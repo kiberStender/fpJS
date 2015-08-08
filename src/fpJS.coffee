@@ -388,7 +388,31 @@ fpJS = do ->
       rs unit()
     catch e then rj e
     
-  query = (q) -> new FPNode document.querySelector q    
+  query = (q) -> new FPNode document.querySelector q
+  
+  class FpWebSocket then constructor: (ws) ->
+    class Sender then constructor: (ws) ->
+      @send = (msg) ->
+        ws.send msg
+        new Sender ws
+        
+    @onOpen = (fn) ->
+      ws.onopen = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then (e) -> fn e, new Sender ws 
+      new FpWebSocket ws
+    @onClose = (fn) ->  
+      ws.onclose = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then fn
+      new FpWebSocket ws
+    @whenMessageComes = (fn) ->
+      ws.onmessage = (msg) -> (new Promise (rs, rj) -> try rs msg catch e then rj e).then (msg) -> fn msg, new Sender ws
+      new FpWebSocket ws
+    @onError = (fn) ->
+      ws.onerror = (msg) -> (new Promise (rs, rj) -> try rs msg catch e then rj e).then (msg) -> fn msg, new Sender ws
+      new FpWebSocket ws
+    @sendMessage = (msg) ->
+      ws.sendMessage msg
+      new FpWebSocket ws
+    
+  webSocket = (conn, protocols) -> new FpWebSocket new WebSocket conn, protocols
     
   IOPerformer = do ->
     ioPerform = (fn) -> (str = "") -> new IO -> (fn.andThen (_) -> unit()) str
@@ -432,8 +456,8 @@ fpJS = do ->
     right, left
     #utils.try_
     _try, success, failure
-    #IO
-    IO, query, IOPerformer
+    #IO/Promises
+    IO, query, IOPerformer, websocket
     #Ajax
     get, post, del, put
     #State
