@@ -403,10 +403,10 @@ fpJS = do ->
       ws.onclose = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then fn
       new FpWebSocket ws
     @whenMessageComes = (fn) ->
-      ws.onmessage = (msg) -> (new Promise (rs, rj) -> try rs msg catch e then rj e).then (msg) -> fn msg, new Sender ws
+      ws.onmessage = (evt) -> (new Promise (rs, rj) -> try rs evt.data catch e then rj e).then (msg) -> fn msg, new Sender ws
       new FpWebSocket ws
     @onError = (fn) ->
-      ws.onerror = (msg) -> (new Promise (rs, rj) -> try rs msg catch e then rj e).then (msg) -> fn msg, new Sender ws
+      ws.onerror = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then (msg) -> fn msg, new Sender ws
       new FpWebSocket ws
     @sendMessage = (msg) ->
       ws.sendMessage msg
@@ -457,7 +457,7 @@ fpJS = do ->
     #utils.try_
     _try, success, failure
     #IO/Promises
-    IO, query, IOPerformer, websocket
+    IO, query, IOPerformer, webSocket
     #Ajax
     get, post, del, put
     #State
