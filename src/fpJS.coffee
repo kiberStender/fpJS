@@ -252,7 +252,7 @@ fpJS = do ->
       (@foldRight @empty()) (item) -> (acc) -> acc.concat item
     else @
     
-  seq = (items...) -> if items.length is 0 then nil() else (seq.apply @, items.slice 1).cons items[0]
+  seq = (items...) -> if items.length is 0 then nil() else (arrayToSeq items.slice 1).cons items[0]
 
   class Cons extends Seq then constructor: (head, tail) ->
     @isEmpty = -> false
@@ -277,10 +277,14 @@ fpJS = do ->
     @headOps = -> nothing()
     @equals = (x) -> x instanceof Nil
 
+  cons = (head) -> (tail) -> new Cons hed, tail
+
   nil = -> if nilInstance is null
     nilInstance = new Nil()
     nilInstance
   else nilInstance
+
+  arrayToSeq = (arr) -> seq.apply @, arr
       
   #Range
   class Range extends Seq then constructor: (start, end, step = 1) ->
@@ -409,7 +413,7 @@ fpJS = do ->
       ws.onerror = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then (msg) -> fn msg, new Sender ws
       new FpWebSocket ws
     @sendMessage = (msg) ->
-      ws.sendMessage msg
+      ws.send msg
       new FpWebSocket ws
     
   webSocket = (conn, protocols) -> new FpWebSocket new WebSocket conn, protocols
@@ -451,7 +455,7 @@ fpJS = do ->
     #collections.map
     map
     #collections.seq
-    seq, Cons, nil
+    seq, cons, nil, arrayToSeq
     #utils.either
     right, left
     #utils.try_
