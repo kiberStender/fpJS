@@ -8,18 +8,12 @@ fpJS = do ->
   #Adding compose and andThen to native Function class
   Function::compose = (g) -> (x) => @ g x
   Function::andThen = (g) -> (x) => g @ x
-  
-  #Adding Ordering to all objects and instances of native JS
-  Object::equals = (o) -> @toString() is o.toString()
-  Object::compare = (x) -> throw Error "(Object::compare) No implementation"
-  Object::lessThan = (x) -> (@compare x) is -1
-  Object::greaterThan = (x) -> (@compare x) is 1
-  
+
   #Adding Ordering to Native JS objects
   Number::compare = (x) -> if typeof x is "number"
     if (@ + 0) is x then 0 else if (@ + 0) < x then -1 else 1
   else -2
-  
+
   String::compare = (s) -> if typeof s is "string"
     if (@ + '') is s then 0 else if (@ + '') < s then -1 else 1
   else -2
@@ -77,10 +71,7 @@ fpJS = do ->
     
   just = (value) -> new Just value
 
-  nothing = -> if notInstance is null
-    notInstance = new Nothing()
-    notInstance
-  else notInstance
+  nothing = -> if notInstance is null then notInstance = new Nothing() else notInstance
 
   class Traversable extends Monad
     isEmpty: -> throw Error "(Traversable::isEmpty) Not implemented yet!!!"
@@ -119,7 +110,7 @@ fpJS = do ->
     
     toStringFrmt: (acc) -> (item) -> throw Error "(Traversable::toStringFrmt) Not implemented yet!!!"
     
-    length: -> @foldLeft(0) (acc) -> (item) -> acc + 1
+    length: -> @foldLeft(0) (acc) -> (_) -> acc + 1
     
     #Method for filtering the traversable
     filter: (p) -> @foldLeft(@empty()) (acc) -> (item) -> if p item then acc.cons item else acc
@@ -130,7 +121,7 @@ fpJS = do ->
     
     find: (p) -> if @isEmpty() then nothing() else (if p @head() then new Just @head() else @tail().find p)
     
-    contains: (item) -> (@find (x) -> item.equals x) instanceof Just
+    contains: (item) -> (@find item.equals) instanceof Just
     
     splitAt: (n) -> throw Error "(Traversable::splitAt) Not implemented yet!!!"
     
@@ -214,10 +205,7 @@ fpJS = do ->
     @headOps = -> nothing()
     @equals = (x) -> x instanceof EmptyMap
 
-  emptyMap = -> if mapInstance is null
-    mapInstance = new EmptyMap()
-    mapInstance
-  else mapInstance
+  emptyMap = -> if mapInstance is null then mapInstance = new EmptyMap() else mapInstance
 
   map = (items...) -> 
     helper = (its) -> if its.length is 0 then emptyMap() else (helper its.slice 1).cons its[0]
@@ -279,10 +267,7 @@ fpJS = do ->
 
   cons = (head) -> (tail) -> new Cons hed, tail
 
-  nil = -> if nilInstance is null
-    nilInstance = new Nil()
-    nilInstance
-  else nilInstance
+  nil = -> if nilInstance is null then nilInstance = new Nil() else nilInstance
 
   arrayToSeq = (arr) -> seq.apply @, arr
       
@@ -370,27 +355,26 @@ fpJS = do ->
   del = (url, mData = map(), json = false) -> (new Ajax "DELETE", url, mData, json).httpFetch()
   put = (url, mData = map(), json = false) -> (new Ajax "PUT", url, mData, json).httpFetch()
     
-  class FPNode then constructor: (obj) ->
-    @readHtml = -> new Promise (rs, rj) -> try rs obj.innerHTML catch e then rj e
+  class FPNode then constructor: (obj, actions = seq()) ->
+    @readHtml = -> new FPNode obj, actions.cons -> obj.innerHTML
     
-    @writeHtml = (vl) -> new Promise (rs, rj) -> try
+    @writeHtml = (vl) -> new FPNode obj, actions.cons -> 
       obj.innerHTML = vl
-      rs unit()
-    catch e then rj e
+      unit()
       
-    @readCss = -> new Promise (rs, rj) -> try rs obj.style catch e then rj e
+    @readCss = -> new FPNode obj, actions.cons -> obj.style
     
-    @writeCss = (css) -> new Promise (rs, rj) -> try
+    @writeCss = (css) -> new FPNode obj, actions.cons -> 
       obj.style = css
-      rs unit()
-    catch e then rj e
+      unit()
       
-    @readSrc = -> new Promise (rs, rj) -> try rs obj.src catch e then rj e
+    @readSrc = -> new FPNode obj, actions.cons -> obj.src
     
-    @writeSrc = (src) -> new Promise (rs, rj) -> try
+    @writeSrc = (src) -> new FPNode obj, actions.cons -> 
       obj.src = src
-      rs unit()
-    catch e then rj e
+      unit()
+      
+    @asIO = -> new IO -> (actions.tail().foldLeft actions.head()) (acc) -> (fn) -> fn acc
     
   query = (q) -> new FPNode document.querySelector q
   
