@@ -2,12 +2,19 @@ fpJS = do ->
   notInstance = null
   mapInstance = null
   nilInstance = null
+  emptyNilInstance = null
   emptyTreeInstance = null
   unitInstance = null
   
+  #Adding Ordering to all objects and instances of native JS
+  Object::equals = Object::equals or (o) -> @toString() is o.toString()
+  Object::compare = Object::compare or (x) -> throw Error "(Object::compare) No implementation"
+  Object::lessThan = Object::lessThan or (x) -> (@compare x) is -1
+  Object::greaterThan = Object::greaterThan or (x) -> (@compare x) is 1
+  
   #Adding compose and andThen to native Function class
-  Function::compose = (g) -> (x) => @ g x
-  Function::andThen = (g) -> (x) => g @ x
+  Function::compose = Function::compose or (g) -> (x) => @ g x
+  Function::andThen = Function::andThen or (g) -> (x) => g @ x
 
   #Adding Ordering to Native JS objects
   Number::compare = (x) -> if typeof x is "number"
@@ -284,6 +291,67 @@ fpJS = do ->
     
   Number::to = (end) -> new Range (@ + 0), end
   Number::until = (end) -> new Range (@ + 0), (end - 1)
+  
+  class Set extends Traversable
+    prefix: -> "Set"
+    empty: -> emptySet()
+    toStringFrmt: (acc) -> (item) -> if acc is "" then item else "#{acc}, #{item}"
+    
+    add: (el) -> new ValSet el, @
+    
+    #Haskell : function or Scala :: method
+    cons: (el) -> if @isEmpty() then @add el
+    else do (compared = @head().compare el) -> if compared < 0 then @tail().cons(el).add(@head())
+    else if compared is 0 then (if el.quals @head() then @ else @tail().cons item)
+    else @tail().add(@head()).add(el)
+
+    reverse: -> @foldLeft(@empty()) (acc) -> (item) -> acc.cons item
+
+    #Haskell and Scala ++ function
+    concat: (prefix) ->
+      helper = (acc) -> (other) -> if other.isEmpty() then acc
+      else (helper acc.cons other.head()) other.tail()
+
+      (helper @) prefix
+      
+    splitAt: (el) -> 
+      splitR = (n) -> (cur) -> (pre) -> if cur.isEmpty() then [pre, emptySet()]
+      else if n is 0 then [pre, cur]
+      else (((splitR n - 1) cur.tail()) pre.cons cur.head())
+      
+      (((splitR el) @) @empty())
+      
+    #Method that transforms a Seq of Seq's in a single Seq
+    flatten: ->  if @head() instanceof ValSet
+      (@foldRight @empty()) (item) -> (acc) -> acc.concat item
+    else @
+    
+  class EmptySet extends Set then constructor: ->
+    @isEmpty = -> true
+    @head  = -> throw Error "No such element"
+    @tail = -> throw Error "No such element"
+    @init = -> throw Error "No such element"
+    @last = -> throw Error "No such element"
+    @maybeHead = -> nothing()
+    @maybeLast = -> nothing()
+    @headOps = -> nothing()
+    @equals = (x) -> x instanceof EmptySet
+  
+  class ValSet extends Set then constructor: (head, tail) ->
+    @isEmpty = -> false
+    @head = -> head
+    @tail = -> tail
+    @init = -> @reverse().tail().reverse()
+    @last = -> @reverse().head()
+    @maybeHead = -> new Just head
+    @maybeLast = -> new Just last()
+    @equals = (x) -> if x instanceof ValSet
+      if head.equals x.head() then tail.equals x.tail() else false
+    else false
+  
+  emptySet = -> if emptyNilInstance is null then emptyNilInstance = new EmptySet() else emptyNilInstance
+  
+  set = (items...) -> if items.length is 0 then emptySet() else (set.apply @, items.slice 1).cons items[0]
     
   class Either extends Any 
     fold: (rfn, lfn) -> if @ instanceof Right then rfn @value() else lfn @value()
@@ -441,6 +509,8 @@ fpJS = do ->
     map
     #collections.seq
     seq, cons, nil, arrayToSeq
+    #Set
+    set
     #utils.either
     right, left
     #utils.try_
