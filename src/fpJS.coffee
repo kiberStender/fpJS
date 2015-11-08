@@ -430,6 +430,7 @@ fpJS = do ->
     @mod: (f) -> new State (s) -> [[], f s]
 
   {
+    Ordering
     #Unit
     unit
     #typeclases
