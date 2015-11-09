@@ -253,6 +253,8 @@ fpJS = do ->
       (@foldRight @empty()) (item) -> (acc) -> acc.concat item
     else @
     
+    toSet: -> (@foldLeft set()) (acc) -> (x) -> acc.cons x
+    
   seq = (items...) -> if items.length is 0 then nil() else (arrayToSeq items.slice 1).cons items[0]
 
   class Cons extends Seq then constructor: (head, tail) ->
@@ -331,6 +333,8 @@ fpJS = do ->
     flatten: ->  if @head() instanceof ValSet
       (@foldRight @empty()) (item) -> (acc) -> acc.concat item
     else @
+    
+    toSeq: -> (@foldLeft seq()) (acc) -> (x) -> acc.cons x
     
   class EmptySet extends Set then constructor: ->
     @isEmpty = -> true
