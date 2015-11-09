@@ -357,7 +357,9 @@ fpJS = do ->
   
   emptySet = -> if emptyNilInstance is null then emptyNilInstance = new EmptySet() else emptyNilInstance
   
-  set = (items...) -> if items.length is 0 then emptySet() else (set.apply @, items.slice 1).cons items[0]
+  set = (items...) -> if items.length is 0 then emptySet() else (arrayToSet items.slice 1).cons items[0]
+  
+  arrayToSet = (arr) -> set.apply @, arr
     
   class Either extends Any 
     fold: (rfn, lfn) -> if @ instanceof Right then rfn @value() else lfn @value()
@@ -500,7 +502,7 @@ fpJS = do ->
       #collections.seq
       seq, cons, nil, arrayToSeq
       #Set
-      set
+      set, arrayToSet
       #utils.either
       right, left
       #utils.try_
@@ -546,7 +548,7 @@ fpJS = do ->
     #collections.seq
     seq, cons, nil, arrayToSeq
     #Set
-    set
+    set, arrayToSet
     #utils.either
     right, left
     #utils.try_
