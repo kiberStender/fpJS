@@ -1,7 +1,9 @@
 chai = require "chai"
 chai.should()
 
-{fpJS: {seq, Cons, nil}} = require "../src/fpJS.coffee"
+{fpJS} = require "../src/fpJS.coffee"
+
+{seq, Cons, nil} = fpJS.withAllExtension()
 
 describe "Seq instances", ->
   s = seq 1, 2, 3

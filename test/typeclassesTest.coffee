@@ -1,7 +1,8 @@
 chai = require "chai"
 chai.should()
 
-{fpJS: {Functor, Applicative, Monad}} = require "../src/fpJS.coffee"
+{fpJS} = require "../src/fpJS.coffee"
+{Functor, Applicative, Monad} = fpJS.withAllExtension()
 
 describe 'Typeclasses instances', -> 
   it 'Functor should not instantiate', -> chai.expect(-> new Functor).to.throw "No direct constructor"

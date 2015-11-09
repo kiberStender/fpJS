@@ -1,7 +1,8 @@
 chai = require "chai"
 chai.should()
 
-{fpJS: {just, nothing}} = require "../src/fpJS.coffee"
+{fpJS} = require "../src/fpJS.coffee"
+{just, nothing} = fpJS.withAllExtension()
 
 describe "Maybe Instances", ->
   fx = (x) -> x + 5

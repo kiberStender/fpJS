@@ -1,7 +1,8 @@
 chai = require "chai"
 chai.should()
 
-{fpJS: {set}} = require "../src/fpJS.coffee"
+{fpJS} = require "../src/fpJS.coffee"
+{set} = fpJS.withAllExtension()
 
 describe "Set instances", ->
   # Lazy vals

@@ -1,7 +1,8 @@
 chai = require "chai"
 chai.should()
 
-{fpJS: {map, State}} = require "../src/fpJS.coffee"
+{fpJS} = require "../src/fpJS.coffee"
+{map, State} = fpJS.withAllExtension()
 
 fibMemo = (n) ->
   fibmemoR = (z) -> if z <= 1 then State.insert z

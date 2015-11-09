@@ -1,7 +1,9 @@
 chai = require "chai"
 chai.should()
 
-{fpJS: {map, just}} = require "../src/fpJS.coffee"
+{fpJS} = require "../src/fpJS.coffee"
+
+{map, just} = fpJS.withAllExtension()
 
 describe "Map instances", ->
   mi = map [1, "kleber"], [2, "eduardo"]
