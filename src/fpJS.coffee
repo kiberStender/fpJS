@@ -6,15 +6,21 @@ fpJS = do ->
   emptyTreeInstance = null
   unitInstance = null
   
-  #Adding Ordering to all objects and instances of native JS
-  Object::equals = Object::equals or (o) -> @toString() is o.toString()
-  Object::compare = Object::compare or (x) -> throw Error "(Object::compare) No implementation"
-  Object::lessThan = Object::lessThan or (x) -> (@compare x) is -1
-  Object::greaterThan = Object::greaterThan or (x) -> (@compare x) is 1
+  withOrdering = ->
+    #Adding Ordering to all objects and instances of native JS
+    Object::equals = Object::equals or (o) -> @toString() is o.toString()
+    Object::compare = Object::compare or (x) -> throw Error "(Object::compare) No implementation"
+    Object::lessThan = Object::lessThan or (x) -> (@compare x) is -1
+    Object::greaterThan = Object::greaterThan or (x) -> (@compare x) is 1
+    fpJS
   
-  #Adding compose and andThen to native Function class
-  Function::compose = Function::compose or (g) -> (x) => @ g x
-  Function::andThen = Function::andThen or (g) -> (x) => g @ x
+  withFnExtension = ->
+    #Adding compose and andThen to native Function class
+    Function::compose = Function::compose or Function::compose or (g) -> (x) => @ g x
+    Function::andThen = Function::andThen or Function::andThen or (g) -> (x) => g @ x
+    fpJS
+    
+  withAllExtension = -> withOrdering().withFnExtension()
 
   #Adding Ordering to Native JS objects
   Number::compare = (x) -> if typeof x is "number"
@@ -218,7 +224,7 @@ fpJS = do ->
     helper = (its) -> if its.length is 0 then emptyMap() else (helper its.slice 1).cons its[0]
     helper items.reverse()
     
-  class Seq  extends Traversable
+  class Seq extends Traversable
     prefix: -> "Seq"
     empty: -> nil()
     toStringFrmt: (acc) -> (item) -> if acc is "" then item else "#{acc}, #{item}"
@@ -301,7 +307,7 @@ fpJS = do ->
     
     #Haskell : function or Scala :: method
     cons: (el) -> if @isEmpty() then @add el
-    else do (compared = @head().compare el) -> if compared < 0 then @tail().cons(el).add(@head())
+    else do (compared = @head().compare el) => if compared < 0 then @tail().cons(el).add(@head())
     else if compared is 0 then (if el.quals @head() then @ else @tail().cons item)
     else @tail().add(@head()).add(el)
 
@@ -314,7 +320,7 @@ fpJS = do ->
 
       (helper @) prefix
       
-    splitAt: (el) -> 
+    splitAt: (el) ->
       splitR = (n) -> (cur) -> (pre) -> if cur.isEmpty() then [pre, emptySet()]
       else if n is 0 then [pre, cur]
       else (((splitR n - 1) cur.tail()) pre.cons cur.head())
@@ -396,89 +402,119 @@ fpJS = do ->
     @foreach = (io) -> @flatMap (a) -> io
     @toString = -> "IO"
     
-  class Ajax then constructor: (method, url = "", mData = map(), json = false) ->
-    xhr = -> if window.XMLHttpRequest then new XMLHttpRequest() else new ActiveXObject("Microsoft.XMLHTTP")
-    
-    convertObjectToQueryString = (mData) -> (mData.foldLeft "") (acc) -> (val) -> 
-      [key, value] = val
-      acc + "&#{key}=#{value}"
-      
-    parseJson = (resp) -> if json then JSON.parse resp else resp
-    
-    @httpFetch = -> new Promise (resolve, reject) ->
-      req = xhr()
-      
-      req.onreadystatechange = -> if @readyState is 4
-        if @status is 200 then resolve parseJson @response
-        else reject new Error @statusText
-        
-      req.onerror = -> reject new Error @statusText
-      
-      req.open method, url, true
-      req.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
-      req.send convertObjectToQueryString mData
-    
-  get = (url, json = false) -> (new Ajax "GET", url, map(), json).httpFetch()
-  post = (url, mData = map(), json = false) -> (new Ajax "POST", url, mData, json).httpFetch()
-  del = (url, mData = map(), json = false) -> (new Ajax "DELETE", url, mData, json).httpFetch()
-  put = (url, mData = map(), json = false) -> (new Ajax "PUT", url, mData, json).httpFetch()
-    
-  class FPNode then constructor: (obj, actions = seq()) ->
-    @readHtml = -> new FPNode obj, actions.cons -> obj.innerHTML
-    
-    @writeHtml = (vl) -> new FPNode obj, actions.cons -> 
-      obj.innerHTML = vl
-      unit()
-      
-    @readCss = -> new FPNode obj, actions.cons -> obj.style
-    
-    @writeCss = (css) -> new FPNode obj, actions.cons -> 
-      obj.style = css
-      unit()
-      
-    @readSrc = -> new FPNode obj, actions.cons -> obj.src
-    
-    @writeSrc = (src) -> new FPNode obj, actions.cons -> 
-      obj.src = src
-      unit()
-      
-    @asIO = -> new IO -> (actions.tail().foldLeft actions.head()) (acc) -> (fn) -> fn acc
-    
-  query = (q) -> new FPNode document.querySelector q
-  
-  class FpWebSocket then constructor: (ws) ->
-    class Sender then constructor: (ws) ->
-      @send = (msg) ->
+  withBrowserClasses = ->
+    class Ajax then constructor: (method, url = "", mData = map(), json = false) ->
+      xhr = -> if window.XMLHttpRequest then new XMLHttpRequest() else new ActiveXObject("Microsoft.XMLHTTP")
+
+      convertObjectToQueryString = (mData) -> (mData.foldLeft "") (acc) -> (val) -> 
+        [key, value] = val
+        acc + "&#{key}=#{value}"
+
+      parseJson = (resp) -> if json then JSON.parse resp else resp
+
+      @httpFetch = -> new Promise (resolve, reject) ->
+        req = xhr()
+
+        req.onreadystatechange = -> if @readyState is 4
+          if @status is 200 then resolve parseJson @response
+          else reject new Error @statusText
+
+        req.onerror = -> reject new Error @statusText
+
+        req.open method, url, true
+        req.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+        req.send convertObjectToQueryString mData
+
+    get = (url, json = false) -> (new Ajax "GET", url, map(), json).httpFetch()
+    post = (url, mData = map(), json = false) -> (new Ajax "POST", url, mData, json).httpFetch()
+    del = (url, mData = map(), json = false) -> (new Ajax "DELETE", url, mData, json).httpFetch()
+    put = (url, mData = map(), json = false) -> (new Ajax "PUT", url, mData, json).httpFetch()
+
+    class FPNode then constructor: (obj, actions = seq()) ->
+      @readHtml = -> new FPNode obj, actions.cons -> obj.innerHTML
+
+      @writeHtml = (vl) -> new FPNode obj, actions.cons -> 
+        obj.innerHTML = vl
+        unit()
+
+      @readCss = -> new FPNode obj, actions.cons -> obj.style
+
+      @writeCss = (css) -> new FPNode obj, actions.cons -> 
+        obj.style = css
+        unit()
+
+      @readSrc = -> new FPNode obj, actions.cons -> obj.src
+
+      @writeSrc = (src) -> new FPNode obj, actions.cons -> 
+        obj.src = src
+        unit()
+
+      @asIO = -> new IO -> (actions.tail().foldLeft actions.head()) (acc) -> (fn) -> fn acc
+
+    query = (q) -> new FPNode document.querySelector q
+
+    class FpWebSocket then constructor: (ws) ->
+      class Sender then constructor: (ws) ->
+        @send = (msg) ->
+          ws.send msg
+          new Sender ws
+
+      @onOpen = (fn) ->
+        ws.onopen = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then (e) -> fn e, new Sender ws 
+        new FpWebSocket ws
+      @onClose = (fn) ->  
+        ws.onclose = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then fn
+        new FpWebSocket ws
+      @whenMessageComes = (fn) ->
+        ws.onmessage = (evt) -> (new Promise (rs, rj) -> try rs evt.data catch e then rj e).then (msg) -> fn msg, new Sender ws
+        new FpWebSocket ws
+      @onError = (fn) ->
+        ws.onerror = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then (msg) -> fn msg, new Sender ws
+        new FpWebSocket ws
+      @sendMessage = (msg) ->
         ws.send msg
-        new Sender ws
-        
-    @onOpen = (fn) ->
-      ws.onopen = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then (e) -> fn e, new Sender ws 
-      new FpWebSocket ws
-    @onClose = (fn) ->  
-      ws.onclose = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then fn
-      new FpWebSocket ws
-    @whenMessageComes = (fn) ->
-      ws.onmessage = (evt) -> (new Promise (rs, rj) -> try rs evt.data catch e then rj e).then (msg) -> fn msg, new Sender ws
-      new FpWebSocket ws
-    @onError = (fn) ->
-      ws.onerror = (evt) -> (new Promise (rs, rj) -> try rs evt catch e then rj e).then (msg) -> fn msg, new Sender ws
-      new FpWebSocket ws
-    @sendMessage = (msg) ->
-      ws.send msg
-      new FpWebSocket ws
-    
-  webSocket = (conn, protocols) -> new FpWebSocket new WebSocket conn, protocols
-    
-  IOPerformer = do ->
-    ioPerform = (fn) -> (str = "") -> new IO -> (fn.andThen (_) -> unit()) str
-    
-    consoleIO = ioPerform console.log.bind console
-    alertIO = ioPerform alert
+        new FpWebSocket ws
+
+    webSocket = (conn, protocols) -> new FpWebSocket new WebSocket conn, protocols
+
+    IOPerformer = do ->
+      ioPerform = (fn) -> (str = "") -> new IO -> (fn.andThen (_) -> unit()) str
+
+      consoleIO = ioPerform console.log.bind console
+      alertIO = ioPerform alert
+
+      main = (fn) -> document.addEventListener "DOMContentLoaded", (event) -> fn(event).unsafePerformIO()
+
+      {alertIO, consoleIO, main}
       
-    main = (fn) -> document.addEventListener "DOMContentLoaded", (event) -> fn(event).unsafePerformIO()
-      
-    {alertIO, consoleIO, main}
+    {
+      Ordering
+      #Unit
+      unit
+      #typeclases
+      Functor, Applicative, Monad
+      #maybe
+      nothing, just
+      #collections.map
+      map
+      #collections.seq
+      seq, cons, nil, arrayToSeq
+      #Set
+      set
+      #utils.either
+      right, left
+      #utils.try_
+      _try, success, failure
+      #IO
+      IO, query, IOPerformer, webSocket
+      #Ajax
+      get, post, del, put
+      #State
+      State
+
+      #No extensions
+      withOrdering, withFnExtension, withAllExtension
+    }
     
   #State Monad
   class State extends Monad
@@ -515,12 +551,13 @@ fpJS = do ->
     right, left
     #utils.try_
     _try, success, failure
-    #IO/Promises
-    IO, query, IOPerformer, webSocket
-    #Ajax
-    get, post, del, put
+    #IO
+    IO
     #State
     State
+    
+    #No extensions
+    withOrdering, withFnExtension, withAllExtension, withBrowserClasses
   }
 
 root = exports ? window
