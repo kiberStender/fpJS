@@ -3,7 +3,6 @@ fpJS = do ->
   mapInstance = null
   nilInstance = null
   emptyNilInstance = null
-  emptyTreeInstance = null
   unitInstance = null
   
   withOrdering = ->
@@ -309,9 +308,10 @@ fpJS = do ->
     
     #Haskell : function or Scala :: method
     cons: (el) -> if @isEmpty() then @add el
-    else do (compared = @head().compare el) => if compared < 0 then @tail().cons(el).add(@head())
-    else if compared is 0 then (if el.quals @head() then @ else @tail().cons item)
-    else @tail().add(@head()).add(el)
+    else switch el.compare @head()
+      when 1 then @tail().cons(el).add @head()
+      when 0 then (if el.equals @head() then @ else @tail().cons el)
+      else @tail().add(@head()).add el
 
     reverse: -> @foldLeft(@empty()) (acc) -> (item) -> acc.cons item
 
