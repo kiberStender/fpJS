@@ -370,10 +370,14 @@ fpJS = do ->
 
   class Right extends Either then constructor: (value) ->
     @value = -> value
+    @isRight = -> true
+    @isLeft = -> false
     @toString = -> "Right(#{value})"
 
   class Left extends Either then constructor: (value) ->
     @value = -> value
+    @isRight = -> false
+    @isLeft = -> true
     toString: -> "Left(#{value})"
     
   right = (value) -> new Right value
