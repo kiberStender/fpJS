@@ -153,6 +153,8 @@ fpJS = do ->
     zip: (tr) -> if @isEmpty() or tr.isEmpty() then @empty() else @tail().zip(tr.tail()).cons [@head(), tr.head()]
     
     zipWith: (tr) -> (fn) => @zip(tr).fmap fn
+    
+    toNativeArray: -> if @isEmpty() then [] else [@head()].concat @tail().toNativeArray()
 
   class Map extends Traversable
     prefix: -> "Map"
@@ -558,14 +560,14 @@ fpJS = do ->
     #Set
     set, arrayToSet
     #utils.either
-    right, left
+    Either, Left, Right, right, left
     #utils.try_
     _try, success, failure
     #IO
     IO
     #State
     State
-    
+
     #No extensions
     withOrdering, withFnExtension, withAllExtension, withBrowserClasses
   }
