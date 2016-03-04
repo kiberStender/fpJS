@@ -1,9 +1,11 @@
 fpJS = do ->
-  notInstance = null
-  mapInstance = null
-  nilInstance = null
-  emptyNilInstance = null
-  unitInstance = null
+  lazy = (fn) ->
+    val = null
+    isEvaluated = false  
+    -> if isEvaluated then val
+    else 
+      isEvaluated = true
+      val = fn()
   
   withOrdering = ->
     #Adding Ordering to all objects and instances of native JS
@@ -46,8 +48,8 @@ fpJS = do ->
   class Unit extends Any then constructor: ->
     @equals = (u) -> u instanceof Unit
     @toString = -> "Unit"
-  
-  unit = -> if not unitInstance then unitInstance = new Unit() else unitInstance
+    
+  unit = lazy -> new Unit()
 
   class Functor extends Any
     #method to map the internal data of type A into a data of type B
@@ -83,7 +85,7 @@ fpJS = do ->
     
   just = (value) -> new Just value
 
-  nothing = -> if notInstance is null then notInstance = new Nothing() else notInstance
+  nothing = lazy -> new Nothing()
 
   class Traversable extends Monad
     isEmpty: -> throw Error "(Traversable::isEmpty) Not implemented yet!!!"
@@ -219,7 +221,7 @@ fpJS = do ->
     @headOps = -> nothing()
     @equals = (x) -> x instanceof EmptyMap
 
-  emptyMap = -> if mapInstance is null then mapInstance = new EmptyMap() else mapInstance
+  emptyMap = lazy -> new EmptyMap()
 
   map = (items...) -> 
     helper = (its) -> if its.length is 0 then emptyMap() else (helper its.slice 1).cons its[0]
@@ -281,10 +283,10 @@ fpJS = do ->
     @headOps = -> nothing()
     @equals = (x) -> x instanceof Nil
 
-  cons = (head) -> (tail) -> new Cons hed, tail
+  cons = (head) -> (tail) -> new Cons(head, tail)
 
-  nil = -> if nilInstance is null then nilInstance = new Nil() else nilInstance
-
+  nil = lazy -> new Nil()
+  
   arrayToSeq = (arr) -> seq.apply @, arr
       
   #Range
@@ -361,7 +363,7 @@ fpJS = do ->
       if head.equals x.head() then tail.equals x.tail() else false
     else false
   
-  emptySet = -> if emptyNilInstance is null then emptyNilInstance = new EmptySet() else emptyNilInstance
+  emptySet = lazy -> new EmptySet()
   
   set = (items...) -> if items.length is 0 then emptySet() else (arrayToSet items.slice 1).cons items[0]
   
@@ -500,6 +502,7 @@ fpJS = do ->
       {alertIO, consoleIO, main}
       
     {
+      lazy
       Ordering
       #Unit
       unit
@@ -546,6 +549,7 @@ fpJS = do ->
     @mod: (f) -> new State (s) -> [[], f s]
 
   {
+    lazy
     Ordering
     #Unit
     unit
