@@ -18,6 +18,9 @@ module.exports = function(grunt){
             },
             scripts: {
                 src: [ 'build/**/*.js', /*'!build/<%= pkg.name %>.js',*/ '!build/<%= pkg.name %>_<%= pkg.version %>.min.js' ]
+            },
+            options: {
+                force: true
             }
         },
         coffee: {
