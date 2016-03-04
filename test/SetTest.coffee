@@ -2,7 +2,7 @@ chai = require "chai"
 chai.should()
 
 {fpJS} = require "../src/fpJS.coffee"
-{set, seq, Ordering, arrayToSeq} = fpJS.withAllExtension()
+{set, seq, Ordering, arrayToSeq, lazy} = fpJS.withAllExtension()
 
 class Person extends Ordering then constructor: (@name, @surname) ->
   @compare = (p) -> if name is p.name then 0 else (if name < p.name then -1 else 1)
@@ -10,15 +10,11 @@ class Person extends Ordering then constructor: (@name, @surname) ->
   
 person = (name, surname) -> new Person name, surname
 
-describe "Set instances", ->
-  # Lazy vals
-  set_ = null
-  seq_ = null
-  
+describe "Set instances", ->  
   #Functions
   assert = (expr, msg) -> if not expr then throw new Error(msg || 'failed')
-  aSet = -> if set_ is null then set_ = set 3, 2, 5 else set_
-  aSeq = -> if seq_ is null then seq_ = seq 5, 2, 4, 1 else seq_
+  aSet = lazy -> set 3, 2, 5
+  aSeq = lazy -> seq 5, 2, 4, 1
   pSeq = [person("kiber", "bobo"), person("cesar", "besta"), person("pastor", "viado")]
   
   it "Set 3, 2, 5 should be 2, 3, 5" , -> assert aSet().toString() == "Set(2, 3, 5)"
