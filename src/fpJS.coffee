@@ -2,7 +2,7 @@ fpJS = do ->
   lazy = (fn) ->
     val = null
     isEvaluated = false  
-    -> if isEvaluated then val
+    return -> if isEvaluated then val
     else 
       isEvaluated = true
       val = fn()
