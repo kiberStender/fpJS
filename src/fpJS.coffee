@@ -17,8 +17,8 @@ fpJS = do ->
   
   withFnExtension = ->
     #Adding compose and andThen to native Function class
-    Function::compose = Function::compose or Function::compose or (g) -> (x) => @ g x
-    Function::andThen = Function::andThen or Function::andThen or (g) -> (x) => g @ x
+    Function::compose = Function::compose or (g) -> (x) => @ g x
+    Function::andThen = Function::andThen or (g) -> (x) => g @ x
     fpJS
     
   withAllExtension = -> withOrdering().withFnExtension()
@@ -65,7 +65,7 @@ fpJS = do ->
     flatMap: (fn) -> throw Error "(Monad::flatMap) No implementation"
 
   class Maybe extends Monad
-    fmap: (fn) -> if @ instanceof Nothing then @ else new Just fn @get()
+    fmap: (fn) -> if @ instanceof Nothing then @ else just fn @get()
     afmap: (some) -> if some instanceof Nothing then @ else @fmap some.get()
     flatMap: (f) -> if @ instanceof Nothing then @ else f @get()
     getOrElse: (v) -> throw Error "(Maybe::getOrElse) No implementation"
