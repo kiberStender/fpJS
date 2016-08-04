@@ -26,7 +26,13 @@ console.log p.equals p1 # print false
 ```
 
 ## Unit
-In functional paradigm we can not create void functions because in it's essence, functions must always return something. And for this reason it has a unit object (always represented bu ()) that substitute void, returning a symbolic value when our function should return nothing. This way we can keep function composition and a have a lot of benefits packaged with the simple act of returning something
+In functional paradigm we can not create void functions because in it's essence, functions must always return something. Just remember you Math classes:
+
+```
+  f x = x + 1 <- It clearly returns something, sometimes does not matter what it is
+```
+
+And for this reason it has an unit object (always represented by ()) that substitutes void, returning a symbolic value when our function should returns nothing. This way we can keep function composition and a have a lot of benefits packaged with the simple act of returning something:
 
 ```coffeescript
 log = (txt) -> 
@@ -40,16 +46,15 @@ add = (a) -> a + 1
 
 # Typeclasses
 
-Typeclasses are the fundamental principle in functional paradigm. It is a set of 'traits' (something like an abstract class) that abstract all the base tools for you to work as much 'functional' as possible. There are a series of typeclasses but my knowledge only allowed to bring 3 of them (even though I admit, I only understand for sure 2): Functors, Applicative and Moand
+Typeclasses are the fundamental principle in functional paradigm. It is a set of 'traits' (something like an abstract class) that abstracts all the base tools for you to work as much 'functional' as possible. There are a series of typeclasses but my knowledge only allowed me to bring 3 of them (even though I admit it, I only understand for sure 2 of them): Functors, Applicatives and Monads.
 
 ## Functors
-Functional programming is a type of paradigm based on Mathematics, and at the core, Mathematics is only map values from a value to another value, from a Type to another Type or the same Type. 'What do you mean?' you might be asking. Is the essence of all Math functions to get one value as an input and transform it to another value right?
+Functional programming is a type of paradigm based on Mathematics, and at it's core, Mathematics is only 'map values from a value to another value', 'from a Type to another Type or the same Type'. 'What do you mean?' you might be asking. Is the essence of all Math functions to get one value as an input and transform it to another value right?
 
 ```math
   f x = x + 1 # or
   g x = x / 2
 ```
-
 If we could apply types we probably would see something like this:
 
 ```math
@@ -58,26 +63,60 @@ If we could apply types we probably would see something like this:
   g::Int -> Double
   g x = x / 2 # (by the way, it's haskell syntax)
 ```
-It is the base of mathematical functions, so with this in mind and bringing it to IT we can say that everything is mappable, so we finally met Functors: 
+It is the base of mathematical functions, so with this in mind and bringing it to IT we can say that everything is mappable and every action we do in our application is mapping one request to a response, so we finally met Functors: 
 
 ```coffeesscript
   class Functor
     fmap: (fn) -> throw Error "(Functor::fmap) No implementation"
 ```
+I called it fmap because it is a 'functor map'. But what can we do with it? A fmap (or map) function is a function whose have one parameter, a function from A to B , where A and B are two types that can be equal or not. But what does it mean for sure? To give you something to simplify your understanding, an array is a Functor. So imagine you have a Array of integers, lets give it a type Array[Int] (Int will be our A) and you want to transform it in a arrays of doubles multiplying it by 0.5 (now Double is our B), so you want to map an Array[Int] to an Array[B]. So what do you do right now?
 
-I called it fmap because it is a 'functor map'. But what can we do with it? A fmap (or map) function is a function whose have one parameter, a function from A to B , where A and B are two types that can be equal or not. But what does it mean for sure? It means you will have a Functor of some type A, for examplea Int, and will apply to it a function that transforms this A into a B, let's say a String, so in a few words you will transform this Functor[Int] in a Functor[String], whatever the way you will do it.
+```javascript
+var a = [1, 2, 3, 4, 5];
+b = []
+
+for(var i in a){
+  b.push(i * 0.5);
+}
+```
+
+Even if you use coffeescript you have that void call to b.push. So if Javascript arrays have implemented functors fmap function (And I know it is like that today, you have [1, 2].map, but pretend it is not because it has a different implementation) you would write this way:
+
+```coffeescript
+a = [1..5].map (i) ->  i * 0.5
+```
+
+Much simpler right?
 
 ## Applicative
-This is the typeclass I less understand, I can say I did not understand it very well. So If I did not understand why did I add this in my 'framework'? Because the example I saw made sense, I just don't know how to apply it to others examples. So for now I won't explain this, but I will let it here so if someone understands and want to explain me, I will be glad ^^.
 
 ```coffeescript
 class Applicative extends Functor
-  afmap: (fn) -> throw Error "(Applicative::afmap) No implementation"
+  afmap: (functor) -> throw Error "(Applicative::afmap) No implementation"
 ```
+Imagine you want to bring the lazynes to a next level and instead of creating an array of Integers you want to create an array of functions that maps Integers to Doubles (Array[Int -> Double])? How to apply data to it and get it's value? 
+
+```coffeescript
+[((x) -> x+1.0), ((x) ->x*1.2), ((x) ->x/3.0)].fmap (x) -> x 3 # <- x here is a function
+# so it is like you are applying 3 to all functions
+# It will return [4.0, 3.6, 1.0]
+```
+
+But what if I have another array and whatn to apply it's values to the first array functions? Using applicative function afmap (applicative functor map) you can do it
+```coffeescript
+a = [((x) -> x+1.0), ((x) ->x*1.2), ((x) ->x/3.0)]
+b = [1, 2, 3]
+c = b.afmap b
+# C = [1.0, 1.2, 0.33333, 2.0, 2.4, 0.6666, 3.0, 3.6, 1.0]
+# And yes, it applies all items in b array to all functions in a array
+# Or you could simply write 
+d = [((x) -> x+1.0), ((x) ->x*1.2), ((x) ->x/3.0)].afmap [1, 2, 3]
+```
+It is useful to evaluate values on demand and lift a large ammout of functions (of course there is more usability in it, but my knowledge only allows me to understand few things about this, Applicative is the typeclass I less understand)
 
 ## Monad
 
-And here we have the most hard to understand principle of functional paradigm. Monads are the set of structures most generics in the functional World. It can help you get rid of those voids you are used to. But like Functors I will explain it in the next section, for now I will only show its structure:
+~~A monad is just a monoid in the category of endofunctors~~ And here we have the most hard to understand principle of functional paradigm. Monads are the set of structures most generics in the functional World. It can help you get rid of those voids you are used to:
 
 ```coffeescript
 class Monad extends Applicative
@@ -85,7 +124,34 @@ class Monad extends Applicative
   flatMap: (fn) -> throw Error "(Monad::flatMap) No implementation"
 ```
 
-As you can see, Monad extends Applicative who understands Functor, so a Monad is a Functor. Wow. With no example it is hard to explain, but I will start the explanation here. A Monad has two more functions I thought we don't need here. One is a function coming from Applicative named 'pure'. This function serves as our 'new'. It only instantiantes our Applicative/ Monad, and the other function is a function from Monad itself named return. it has the same functionality as the pure function, that's why I did not add these two functions.
+Actually to simplify this flatMap I think of it as a concatenator of objects. In applicatives we saw how to apply two "kinds" of functors right? One is a simple array of integers and the other an array of functions, and using afmap we lift this in a single array of 3 times it's length. So now imagine you have two "normal" arrays: [1, 2, 3] and [1, 2, 3] and you want to join them using an adding how would you do it?
+
+```coffeescript
+a = [1, 2, 3].map (x) -> [1, 2, 3].map (y) -> x + y
+```
+
+Well it would return [[2, 3, 4], [3, 4, 5], [4, 5, 6]], and I think it is not what you expected right? So what you wanted was [2, 3, 4, 3, 4, 5, 4, 5, 6]. How to achieve this? With flatMap like the name says, it will flat your response. The flatMap signature is:
+
+```scala
+def flatMap(fn: A => Monad[B]): Monad[B]
+```
+It means, you flatMap function expects you to return another Monad in it's callback
+
+```coffeescript
+[1, 2, 3].flatMap (x) -> [x * 2] # is the same as
+[1, 2, 3].map (x) -> x * 2
+```
+
+So what is the reason to use it if I will have to use object constructors? It is better used combined with map
+```coffeescript
+b = [1, 2, 3].flatMap (x) -> [1, 2, 3].map (y) -> x + y
+# Is the same as
+c = [1, 2, 3].flatMap (x) -> [1, 2, 3].flatMap (y) -> [x + y]
+```
+
+We use map as a constructor for us making it more readable ^^
+
+As you can see, Monad extends Applicative who understands Functor, so a Monad is a Functor and an Applicative too. And I think you might get too that an Array is a Monad.
 
 # Container/Box theory
 How can you define a function that might fail? Depends on the language right? Pretend you will have taken a task only it's only purpose is to write a div function in C and in Java. Using all the languages 'power' you probably would write somethins like:
