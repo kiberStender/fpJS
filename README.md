@@ -1,15 +1,53 @@
 fpJS
 ====
 
-## Lazy
+## Base
+Functional paradigm is a programming style where you do not have the concept of variables as a mutable thing across the code,
+but as a thing that can born with a different value each time. For example think about a math function
 
-Functional paradigm is lazy by default and it means that everythig is a function and will be evaluated only where it is needed to, but Coffeescript is not a 100% pure functional language, so I created a function named "lazy" to simulate this behaviour and to create singletons too.
+```haskell
+  f x = x + 1
+  a = f 3 -- 4
+  b = f 5 -- 6
+```
+
+Notice that x borns with a different value each time we call the function, but it never changes its value. That's the core idea of 
+functional paradigm. This helps a lot for us do maintain the code, because we can easily track the variable values and for
+advanced language compilers like scala and haskell it helps to make the compiler your friend warning you about problems that may
+occur. 
+
+### About functions
+
+The functional paradigm is based on math statements, so you can use all of its rules to help you coding and by default, if you pay 
+attention a math variable is nothing more than a function without parameter.
+
+```x = 3```
+
+Tranlslates to
+
+```coffeescript
+  x = -> 3
+```
+
+Functions has a lot of advantages that we do not have with variables. For example, we can compose that:
+
+```haskell
+  f x = x + 4
+  g x = x / 2
+
+  h = (f o g) 2 -- (2 + 4) / 2 == 3
+  i = (g o f) 2 -- (2 / 2) + 4 == 5
+```
+
+## Lazy values
+
+Functional paradigm is lazy by default and it means that everything is a function and will be evaluated only where it is needed to, but Coffeescript is not a 100% pure functional language, so I created a function named "lazy" to simulate this behaviour and to create singletons too.
 
 ```coffeescript
   a = lazy -> 10 # i makes 'a' a lazy evaluable variable which returns 10
   console.log a()  # This will print 10
-  # This a limitation we have to deal. By default Scala support parenthesesless 
-  # (Does this word exist?)  but coffeescript do not
+  # This is a limitation we have to deal. By default Scala support parenthesesless function call
+  # (Does this word exist?)  but coffeescript does not
 ```
 
 ## Ordering

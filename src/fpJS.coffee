@@ -65,22 +65,28 @@ fpJS = do ->
     flatMap: (fn) -> throw Error "(Monad::flatMap) No implementation"
 
   class Maybe extends Monad
-    fmap: (fn) -> if @ instanceof Nothing then @ else just fn @get()
-    afmap: (some) -> if some instanceof Nothing then @ else @fmap some.get()
-    flatMap: (f) -> if @ instanceof Nothing then @ else f @get()
+    fmap: (fn) -> if not @isDefined() then @ else just fn @get()
+    afmap: (some) -> if not some.isDefined() then @ else @fmap some.get()
+    flatMap: (f) -> if not @isDefined() then @ else f @get()
+    isDefined: -> throw Error "(Maybe::isDefined) No implementation"
+    orElse: (v) -> throw Error "(Maybe::orElse) No implementation"
     getOrElse: (v) -> throw Error "(Maybe::getOrElse) No implementation"
     get: -> throw Error "(Maybe::get) No implementation"
 
   class Just extends Maybe then constructor: (v) ->
     @toString = -> "Just(#{v})"
-    @get = -> v
+    @isDefined = -> true
+    @orElse = (_v) -> @
     @getOrElse = (_v) -> v
+    @get = -> v
     @equals = (x) -> if x instanceof Just then v.equals x.get() else false
     
   class Nothing extends Maybe then constructor: ->
     @toString = -> "Nothing"
-    @get = -> throw new Error "Nothing.get"
+    @isDefined = -> false
+    @orElse = (v) -> just v()
     @getOrElse = (v) -> v()
+    @get = -> throw new Error "Nothing.get"
     @equals = (x) -> x instanceof Nothing
     
   just = (value) -> new Just value
