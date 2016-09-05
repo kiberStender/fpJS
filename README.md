@@ -35,13 +35,69 @@ Functions has a lot of advantages that we do not have with variables. For exampl
   f x = x + 4
   g x = x / 2
 
-  h = (f o g) 2 -- (2 + 4) / 2 == 3
-  i = (g o f) 2 -- (2 / 2) + 4 == 5
+  h = (f o g) 2 -- (2 + 4) / 2 == 3 or f(g(2))
+  i = (g o f) 2 -- (2 / 2) + 4 == 5 or g(f(2))
+  -- "o" is the math symbol for compose
 ```
+
+Did you see how it makes simple? In fact FpJs implement its own version of compose in a OO style, and has the opposite
+implementation too, called andThen. See for yourself
+
+```coffeescript
+  f = (x) -> x + 4
+  g = (x) -> x / 2
+
+  h = (f.compose g) 2 # (2 + 4) / 2 == 3 or f g 2
+  i = (f.andThen g) 2 # (2 / 2) + 4 == 5 or g f 2
+```
+
+Here you only had to change function names, but it is the same example as the above. Using coffeescript syntax we can
+make the code even simpler and much more, using a simple feature called "currying" to make the app faster and simpler to read.
+Currying is the ability to split a many parameter function in a function who has only one parameter and returns another 
+one parameter function until all the parameters are mapped.
+
+```coffeescript
+  #instead of
+  sum = (a, b) -> a + b
+  #with currying
+  sumC = (a) -> (b) -> a + b
+  # function sumC(a){ return function(b){return a + b;}} in javascript
+  a = sum(2, 3) # 5
+  b = sum(2)(3) # 5 duh!
+```
+
+But how doing this can make our code faster? Imagine the following situation:
+
+```coffeescript
+  sum = (a, b) -> a + b
+  sumC = (a) -> (b) -> a + b
+  
+  sum2 = (a) -> sum(2, a)
+  sum2C = (a) -> sumC(2)(a)
+```
+
+What is the difference besides how it is called? Do you remember all functions are lazy right? So it will only process when you call it,
+with this in mind think about the sum2 function. It will call sum with the first parameter hardcoded right? But not exactly. 
+Before it sums the two number 'a' and 'b', it will have to evaluate  b from sum2 and then reevaluate 'a' and 'b', so it will be a 
+three times execution. Now think about the sum2C. When you call sumC(2) it will returns another function with 'a' parameter already 
+evaluated, so only 'b' will be processed. Only 2 steps, only 2 evaluations. So you can have a better re utilization, a better 
+composition and an increased performance. But you can have a better readable code too writing less code.
+
+```coffeescript
+  sumC = (a) -> (b) -> a + b
+  sum2C = sumC 2
+  alert sum2C 3 # 5
+```
+
+What? What that means? sumC function returns a function with one parameter right? So you don't need to wite it again. With this caveat we
+can write less code and remember this words young code padawan: The less you code it, the less you fix it
+
 
 ## Lazy values
 
-Functional paradigm is lazy by default and it means that everything is a function and will be evaluated only where it is needed to, but Coffeescript is not a 100% pure functional language, so I created a function named "lazy" to simulate this behaviour and to create singletons too.
+Scala has a feature called lazy val. It initializes a variable only when it is called for the first time. Never before, never after.
+And because of its immutable nature, it becomes a singleton object. It is good to have a "global" variable in a certain context 
+and initialize it only when it is needed but Coffeescript has no such feature, so I created a function named "lazy" to simulate this behavior.
 
 ```coffeescript
   a = lazy -> 10 # i makes 'a' a lazy evaluable variable which returns 10
