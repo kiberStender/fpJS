@@ -11,10 +11,10 @@ but as a thing that can born with a different value each time. For example think
   b = f 5 -- 6
 ```
 
-Notice that x borns with a different value each time we call the function, but it never changes its value. That's the core idea of 
-functional paradigm. This helps a lot for us do maintain the code, because we can easily track the variable values and for
-advanced language compilers like scala and haskell it helps to make the compiler your friend warning you about problems that may
-occur. 
+Notice that x born with a different value each time we call the function, but it never changes its value. That's the core idea of 
+functional paradigm. This helps us a lot maintaining the code, because we can easily track the variable values and for
+advanced language compilers like Scala and Haskell it helps to make the compiler your friend warning you about problems that may
+occur with powerful and simple syntax. 
 
 ### About functions
 
@@ -29,32 +29,31 @@ Tranlslates to
   x = -> 3
 ```
 
-Functions has a lot of advantages that we do not have with variables. For example, we can compose that:
+Functions have a lot of advantages that we do not have with variables. For example, we can compose it:
 
 ```haskell
   f x = x + 4
   g x = x / 2
 
-  h = (f o g) 2 -- (2 + 4) / 2 == 3 or f(g(2))
-  i = (g o f) 2 -- (2 / 2) + 4 == 5 or g(f(2))
+  h = (f o g) 2 -- (2 / 2) + 4 == 5 or f(g(2))
+  i = (g o f) 2 -- (2 + 4) / 2 == 3 or g(f(2))
   -- "o" is the math symbol for compose
 ```
 
-Did you see how it makes simple? In fact FpJs implement its own version of compose in a OO style, and has the opposite
-implementation too, called andThen. See for yourself
+Did you see how composing makes the code simple and more readable? In fact FpJs implement its own version of compose in a 
+OO style, and has the opposite implementation too, called andThen. See for yourself:
 
 ```coffeescript
   f = (x) -> x + 4
   g = (x) -> x / 2
 
-  h = (f.compose g) 2 # (2 + 4) / 2 == 3 or f g 2
-  i = (f.andThen g) 2 # (2 / 2) + 4 == 5 or g f 2
+  h = (f.compose g) 2 # (2 / 2) + 4 == 5 or f g 2
+  i = (f.andThen g) 2 # (2 + 4) / 2 == 3 or g f 2
 ```
 
-Here you only had to change function names, but it is the same example as the above. Using coffeescript syntax we can
-make the code even simpler and much more, using a simple feature called "currying" to make the app faster and simpler to read.
-Currying is the ability to split a many parameter function in a function who has only one parameter and returns another 
-one parameter function until all the parameters are mapped.
+Here you only have to change function names to obatin the same results as the above example. Using coffeescript syntax we can
+make the code even simpler using a simple feature called "currying". Currying is the ability to split a many parameter function 
+in a function that has only one parameter and returns another one parameter function until all the parameters are mapped.
 
 ```coffeescript
   #instead of
@@ -77,11 +76,11 @@ But how doing this can make our code faster? Imagine the following situation:
 ```
 
 What is the difference besides how it is called? Do you remember all functions are lazy right? So it will only process when you call it,
-with this in mind think about the sum2 function. It will call sum with the first parameter hardcoded right? But not exactly. 
-Before it sums the two number 'a' and 'b', it will have to evaluate  b from sum2 and then reevaluate 'a' and 'b', so it will be a 
+with this in mind think about the sum2 function. It will call sum with the first parameter hardcoded right? Not exactly. 
+Before it sums the two number 'a' and 'b', it will have to evaluate  b from sum2 and then evaluate 'a' and 'b' again, so it will be a 
 three times execution. Now think about the sum2C. When you call sumC(2) it will returns another function with 'a' parameter already 
 evaluated, so only 'b' will be processed. Only 2 steps, only 2 evaluations. So you can have a better re utilization, a better 
-composition and an increased performance. But you can have a better readable code too writing less code.
+composition and an increased performance. But you can have a better readable code to writing less code.
 
 ```coffeescript
   sumC = (a) -> (b) -> a + b
@@ -89,9 +88,8 @@ composition and an increased performance. But you can have a better readable cod
   alert sum2C 3 # 5
 ```
 
-What? What that means? sumC function returns a function with one parameter right? So you don't need to wite it again. With this caveat we
+What? What that means? sumC function returns a function with one parameter right? So you don't need to write it again. With this caveat we
 can write less code and remember this words young code padawan: The less you code it, the less you fix it
-
 
 ## Lazy values
 
