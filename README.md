@@ -208,8 +208,8 @@ It is useful to evaluate values on demand and lift a large amount of functions (
 
 ## Monad
 
-~~A monad is just a monoid in the category of endofunctors~~ And here we have the hardest principle to understand from functional paradigm. 
-Monads are one of the most generics set of structures in the functional world. It can help you get rid of those voids you are used to:
+~~A monad is just a monoid in the category of endofunctors~~ And here we have the hardest principle to understand the functional paradigm. 
+Monads are one of the most general set of structures in the functional world. It can help you get rid of those voids you are used to:
 
 ```coffeescript
 class Monad extends Applicative
