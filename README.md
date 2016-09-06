@@ -80,7 +80,7 @@ with this in mind think about the sum2 function. It will call sum with the first
 Before it sums the two number 'a' and 'b', it will have to evaluate  b from sum2 and then evaluate 'a' and 'b' again, so it will be a 
 three times execution. Now think about the sum2C. When you call sumC(2) it will returns another function with 'a' parameter already 
 evaluated, so only 'b' will be processed. Only 2 steps, only 2 evaluations. So you can have a better re utilization, a better 
-composition and an increased performance. But you can have a better readable code to writing less code.
+composition and an increased performance. But you can have a better readable code writing less code.
 
 ```coffeescript
   sumC = (a) -> (b) -> a + b
@@ -153,7 +153,7 @@ If we could apply types we probably would see something like this:
   f::Int -> Int # It means, a fn that receives and returns an Int
   f x = x + 1 # or
   g::Int -> Double
-  g x = x / 2 # (by the way, it's haskell syntax)
+  g x = x / 2 # (by the way, this is haskell syntax)
 ```
 It is the base of mathematical functions, so with this in mind and bringing it to IT we can say that everything is mappable and every action we do in our application is mapping one request to a response, so we finally met Functors: 
 
@@ -194,7 +194,7 @@ Imagine you want to bring the lazynes to a next level and instead of creating an
 # It will return [4.0, 3.6, 1.0]
 ```
 
-But what if I have another array and whatn to apply it's values to the first array functions? Using applicative function afmap (applicative functor map) you can do it
+But what if I have another array and want to apply its values to the first array functions? Using applicative function afmap (applicative functor map) you can do it
 ```coffeescript
 a = [((x) -> x+1.0), ((x) ->x*1.2), ((x) ->x/3.0)]
 b = [1, 2, 3]
@@ -202,13 +202,14 @@ c = b.afmap b
 # C = [1.0, 1.2, 0.33333, 2.0, 2.4, 0.6666, 3.0, 3.6, 1.0]
 # And yes, it applies all items in b array to all functions in a array
 # Or you could simply write 
-d = [((x) -> x+1.0), ((x) ->x*1.2), ((x) ->x/3.0)].afmap [1, 2, 3]
+d = [1, 2, 3].afmap [((x) -> x+1.0), ((x) ->x*1.2), ((x) -> x/3.0)]
 ```
-It is useful to evaluate values on demand and lift a large ammout of functions (of course there is more usability in it, but my knowledge only allows me to understand few things about this, Applicative is the typeclass I less understand)
+It is useful to evaluate values on demand and lift a large amount of functions (of course there is more usability in it, but my knowledge only allows me to understand few things about this, Applicative is the typeclass I less understand)
 
 ## Monad
 
-~~A monad is just a monoid in the category of endofunctors~~ And here we have the most hard to understand principle of functional paradigm. Monads are the set of structures most generics in the functional World. It can help you get rid of those voids you are used to:
+~~A monad is just a monoid in the category of endofunctors~~ And here we have the hardest principle to understand from functional paradigm. 
+Monads are one of the most generics set of structures in the functional world. It can help you get rid of those voids you are used to:
 
 ```coffeescript
 class Monad extends Applicative
@@ -226,32 +227,35 @@ Well it would return [[2, 3, 4], [3, 4, 5], [4, 5, 6]], and I think it is not wh
 
 ```scala
 def flatMap(fn: A => Monad[B]): Monad[B]
+//def flatMap: (A => Monad[B]) => Monad[B] <- functional way of expressing the type of a function
 ```
-It means, you flatMap function expects you to return another Monad in it's callback
+It means that your flatMap function expects you to return another Monad in its callback
 
 ```coffeescript
 [1, 2, 3].flatMap (x) -> [x * 2] # is the same as
-[1, 2, 3].map (x) -> x * 2
+[1, 2, 3].fmap (x) -> x * 2
 ```
 
-So what is the reason to use it if I will have to use object constructors? It is better used combined with map
+So what is the reason to use it if I will have to use object constructors? It is better used combined with fmap
 ```coffeescript
-b = [1, 2, 3].flatMap (x) -> [1, 2, 3].map (y) -> x + y
+b = [1, 2, 3].flatMap (x) -> [1, 2, 3].fmap (y) -> x + y
 # Is the same as
-c = [1, 2, 3].flatMap (x) -> [1, 2, 3].flatMap (y) -> [x + y]
-```
+c = [1, 2, 3].flatMap (x) -> [1, 2, 3].flatMap (y) -> [x + y]```
 
-We use map as a constructor for us making it more readable ^^
+The fmap function when used with flatMap becomes a universal constructor to us, making the code less verbose and easier to read, and 
+with this combination you can write any function that expects two Monad[?] as parameter and 'concat'  then, does matter which type
+monad carries or which type of Monad you have (You'll see that there is a lot of types of Monads)
 
 As you can see, Monad extends Applicative who understands Functor, so a Monad is a Functor and an Applicative too. And I think you might get too that an Array is a Monad.
 
 # Container/Box theory
-How can you define a function that might fail? Depends on the language right? Pretend you will have taken a task only it's only purpose is to write a div function in C and in Java. Using all the languages 'power' you probably would write somethins like:
+How can you define a function that might fail? Depends on the language right? Pretend you have taken a task where its only purpose is to 
+write a div function in C and in Java. Using all the languages 'power' you probably would write something like:
 
 ```c
 double div(int a, int b){
   if(b == 0){
-    return 0.0; # Because no division can return 0, it only gets near of it
+    return 0.0; // Because no division can return 0, it only gets near of it
   } else {
     return a / b;
   }
@@ -263,7 +267,7 @@ public double div(int a, int b) throws Exception{
   if(b == 0){
     throw new Exception("Nothing can be divided by 0");
   } else {
-    return a */ b;
+    return a / b;
   }
 }
 ```
@@ -287,5 +291,5 @@ And ...
 Ok, besides the less lines code, it has more benefits. Boxes are Monads, so they have fmap and flatMap functions. Oh I forgot, did not explain what these functions does. Ok lets remember what fmap does. A fmap comes from the Functor typeclass and it is a function that gets another function as a parameter, a function that maps A into B. So we have a function named div who get two Int values and returns a possible Double, a Maybe double. But we don't know if there is a double in there or not, so how we deal with it? If we want to apply a function who process this possible double and returns for example a String saying the value, we can use map for it:
 
 ```coffee
- div(4, 2).fmap (x) -> "The result of 4 / 2 is = {x}"
+ div(4, 2).fmap (x) -> "The result of 4 / 2 is = #{x}"
 ```
