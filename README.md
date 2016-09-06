@@ -240,7 +240,8 @@ So what is the reason to use it if I will have to use object constructors? It is
 ```coffeescript
 b = [1, 2, 3].flatMap (x) -> [1, 2, 3].fmap (y) -> x + y
 # Is the same as
-c = [1, 2, 3].flatMap (x) -> [1, 2, 3].flatMap (y) -> [x + y]```
+c = [1, 2, 3].flatMap (x) -> [1, 2, 3].flatMap (y) -> [x + y]
+```
 
 The fmap function when used with flatMap becomes a universal constructor to us, making the code less verbose and easier to read, and 
 with this combination you can write any function that expects two Monad[?] as parameter and 'concat'  then, does matter which type
@@ -262,7 +263,7 @@ double div(int a, int b){
 }
 ```
 
-```Java
+```java
 public double div(int a, int b) throws Exception{
   if(b == 0){
     throw new Exception("Nothing can be divided by 0");
