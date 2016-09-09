@@ -261,7 +261,7 @@ Notice that we have two loopings happening here. So how a functional programming
 have (fmap)?
 
 ```coffeescript
-a = [1, 2, 3].flatMap (x) -> [1, 2, 3].map (y) -> x + y
+a = [1, 2, 3].map (x) -> [1, 2, 3].map (y) -> x + y
 ```
 
 Well it would return [[2, 3, 4], [3, 4, 5], [4, 5, 6]], and I think it is not what you expected right? So what you wanted was 
