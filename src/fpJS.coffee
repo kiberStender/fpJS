@@ -139,9 +139,9 @@ fpJS = do ->
     
     partition: (p) -> [(@filter p), @filterNot p]
     
-    find: (p) -> if @isEmpty() then nothing() else (if p @head() then new Just @head() else @tail().find p)
+    find: (p) -> if @isEmpty() then nothing() else (if p @head() then just @head() else @tail().find p)
     
-    contains: (item) -> (@find item.equals) instanceof Just
+    contains: (item) -> (@find item).isDefined()
     
     splitAt: (n) -> throw Error "(Traversable::splitAt) Not implemented yet!!!"
     
@@ -167,9 +167,7 @@ fpJS = do ->
   class Map extends Traversable
     prefix: -> "Map"
     empty: -> emptyMap()
-    toStringFrmt: (acc) -> (item) -> 
-      [k, v] = item
-      if acc is "" then "(#{k} -> #{v})" else "#{acc}, (#{k} -> #{v})"
+    toStringFrmt: (acc) -> ([k, v]) -> if acc is "" then "(#{k} -> #{v})" else "#{acc}, (#{k} -> #{v})"
 
     add: (x) -> new KVMap x, @
     
@@ -190,7 +188,7 @@ fpJS = do ->
       
       if n is 0 then nothing()
       else if n is 1
-        if @head()[0].equals k then new Just @head()[1] else nothing()
+        if @head()[0].equals k then just @head()[1] else nothing()
       else
         [x, y] = @splitAt Math.round n / 2
         if (y.head()[0].compare k) > 0 then x.get k else y.get k
@@ -272,8 +270,8 @@ fpJS = do ->
     @tail = -> tail
     @init = -> @reverse().tail().reverse()
     @last = -> @reverse().head()
-    @maybeHead = -> new Just head
-    @maybeLast = -> new Just last()
+    @maybeHead = -> just head
+    @maybeLast = -> just last()
     @equals = (x) -> if x instanceof Cons
       if head.equals x.head() then tail.equals x.tail() else false
     else false
@@ -363,8 +361,8 @@ fpJS = do ->
     @tail = -> tail
     @init = -> @reverse().tail().reverse()
     @last = -> @reverse().head()
-    @maybeHead = -> new Just head
-    @maybeLast = -> new Just last()
+    @maybeHead = -> just head
+    @maybeLast = -> just last()
     @equals = (x) -> if x instanceof ValSet
       if head.equals x.head() then tail.equals x.tail() else false
     else false
@@ -426,9 +424,7 @@ fpJS = do ->
     class Ajax then constructor: (method, url = "", mData = map(), json = false) ->
       xhr = -> if window.XMLHttpRequest then new XMLHttpRequest() else new ActiveXObject("Microsoft.XMLHTTP")
 
-      convertObjectToQueryString = (mData) -> (mData.foldLeft "") (acc) -> (val) -> 
-        [key, value] = val
-        acc + "&#{key}=#{value}"
+      convertObjectToQueryString = (mData) -> (mData.foldLeft "") (acc) -> ([key, value]) -> acc + "&#{key}=#{value}"
 
       parseJson = (resp) -> if json then JSON.parse resp else resp
 
