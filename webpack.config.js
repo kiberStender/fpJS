@@ -1,4 +1,5 @@
 const path = require('path');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
   entry: './src/fpJS.coffee',
@@ -14,5 +15,9 @@ module.exports = {
         use: [ 'coffee-loader' ]
       }
     ]
-  }
+  },
+  resolve: {
+    modules: [path.resolve(__dirname, 'src/'), 'node_modules']
+  },
+  plugins: [new CleanWebpackPlugin()]
 };

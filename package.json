@@ -6,6 +6,7 @@
   "author": "Kleber Stender <kleber.stender@gmail.com>",
   "devDependencies": {
     "chai": "^1.10.0",
+    "clean-webpack-plugin": "^3.0.0",
     "coffee-loader": "^0.9.0",
     "coffeescript": "^2.5.1",
     "mocha": "^7.1.1",
