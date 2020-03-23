@@ -2,7 +2,7 @@ const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
-  entry: './src/fpJS.coffee',
+  entry: './src/index.coffee',
   output: {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist')
@@ -12,12 +12,22 @@ module.exports = {
     rules: [
       {
         test: /\.coffee$/,
-        use: [ 'coffee-loader' ]
+        use: [
+          {
+            loader: 'coffee-loader',
+            options: {
+              transpile: {
+                presets: ['@babel/preset-env']
+              }
+            }
+          }
+        ],
+        exclude: /node_modules/
       }
     ]
   },
   resolve: {
-    modules: [path.resolve(__dirname, 'src/'), 'node_modules']
+    modules: [path.resolve(__dirname, 'src/fpjs'), 'node_modules']
   },
   plugins: [new CleanWebpackPlugin()]
 };
