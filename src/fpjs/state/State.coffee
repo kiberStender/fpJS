@@ -2,11 +2,11 @@ import Monad from "typeclass/monad/Monad.coffee"
 
 export default class State extends Monad
   constructor: (@run) -> super()
-  fmap: (f) -> new State (s) ->
+  fmap: (f) -> new State (s) =>
     [a, t] = @run s
     [(f a), t]
 
-  flatMap: (f) -> new State (s) ->
+  flatMap: (f) -> new State (s) =>
     [a, t] = @run s
     (f a).run t
 
