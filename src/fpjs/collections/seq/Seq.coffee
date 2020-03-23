@@ -1,5 +1,6 @@
 import Traversable from "collections/Traversable.coffee"
 import {nothing, just} from "maybe/Maybe.coffee"
+import {set} from "collections/set/Set.coffee"
 import {lazy} from "utils/lazy.coffee"
 import "utils/ordering.coffee"
 
